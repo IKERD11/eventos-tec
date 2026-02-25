@@ -1,0 +1,320 @@
+/* src/dashboard.css */
+.app-body {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Glass Panels Globals */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 15px var(--glass-shadow);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    border-radius: 0;
+    border-right: 1px solid var(--glass-border);
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    z-index: 10;
+}
+
+.sidebar-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.nav-links a .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+}
+
+.btn-logout {
+    width: 100%;
+    background: rgba(255, 107, 107, 0.2);
+    color: #fff;
+    border: 1px solid rgba(255, 107, 107, 0.4);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+
+.btn-logout .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-logout:hover {
+    background: rgba(255, 107, 107, 0.4);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px 30px;
+    z-index: 5;
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+}
+
+.page-title h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info #userName {
+    font-weight: 500;
+    font-size: 1.05rem;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-icon .icon {
+    width: 22px;
+    height: 22px;
+}
+
+/* Page Body Components */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 12px;
+}
+
+.stat-value {
+    font-size: 3rem;
+    font-weight: 700;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.charts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.chart-card {
+    padding: 25px;
+    border-radius: 16px;
+    width: 100%;
+    min-height: 380px;
+    height: 400px;
+    /* Force bounds for Chart.js */
+}
+
+.chart-card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Light Theme overrides */
+body.light-theme::before {
+    background: linear-gradient(135deg, rgba(240, 242, 245, 0.95) 0%, rgba(220, 225, 235, 0.98) 100%);
+}
+
+body.light-theme {
+    color: #2c3e50;
+}
+
+body.light-theme .glass-panel {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .nav-links a {
+    color: #4a5568;
+}
+
+body.light-theme .nav-links a:hover,
+body.light-theme .nav-links a.active {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .stat-card h3,
+body.light-theme .chart-card h2 {
+    color: #718096;
+}
+
+body.light-theme .btn-icon {
+    color: #4a5568;
+}
+
+body.light-theme .btn-icon:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .btn-logout {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.3);
+}
+
+/* Dashboard Action Buttons Override */
+.btn-export-white {
+    background: #fff;
+    color: #4a5568;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-export-white:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-export-white .icon {
+    width: 18px;
+    height: 18px;
+    color: #4a5568;
+    stroke-width: 2;
+}
+
+/* Glass Variant for Darker Backgrounds */
+.btn-export-glass {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-export-glass:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-export-glass .icon {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+    stroke-width: 2;
+}

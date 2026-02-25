@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventos - SGEA</title>
+    <!-- Modern Google Font: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="stylesheet" href="/src/dashboard.css">
+    <link rel="stylesheet" href="/src/eventos.css">
+</head>
+
+<body class="app-body">
+    <nav class="sidebar glass-panel">
+        <div class="sidebar-header">
+            <h2>SGEA</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/dashboard.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 22V12h6v10"></path>
+                    </svg> Dashboard
+                </a></li>
+            <li><a href="/eventos.html" class="active">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round"></rect>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18">
+                        </path>
+                    </svg> Eventos
+                </a></li>
+            <li><a href="/participantes.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        </circle>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+                    </svg> Participantes
+                </a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn-logout">
+                <svg viewBox="0 0 24 24" fill="none" class="icon">
+                    <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"></path>
+                </svg> Salir
+            </button>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <header class="top-header glass-panel">
+            <div class="page-title">
+                <h1>Gestión de Eventos</h1>
+            </div>
+            <div class="user-info" style="display: flex; gap: 15px; align-items: center;">
+                <span id="userName">Cargando...</span>
+                <button id="themeToggle" class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="action-bar glass-panel">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"></circle>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35">
+                        </path>
+                    </svg>
+                    <input type="text" id="searchEvento" placeholder="Buscar evento..." />
+                </div>
+                <button id="btnNuevoEvento" class="btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round"></line>
+                        <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round"></line>
+                    </svg>
+                    Nuevo Evento
+                </button>
+            </div>
+
+            <!-- Grid de eventos -->
+            <div class="eventos-grid" id="eventosGrid">
+                <div class="loading-state">Cargando eventos...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Formulario -->
+    <div id="eventoModal" class="modal-overlay">
+        <div class="modal-content glass-form">
+            <div class="modal-header">
+                <h2 id="modalTitle">Crear Evento</h2>
+                <button id="closeModal" class="btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg></button>
+            </div>
+            <form id="eventoForm">
+                <input type="hidden" id="eventoId" />
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Título del Evento *</label>
+                        <input type="text" id="evTitulo" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group full-width">
+                        <label>Descripción *</label>
+                        <textarea id="evDescripcion" rows="3" required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row double">
+                    <div class="input-group">
+                        <label>Modalidad *</label>
+                        <select id="evModalidad" required>
+                            <option value="Presencial">Presencial</option>
+                            <option value="Virtual">Virtual</option>
+                            <option value="Híbrido">Híbrido</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Estado *</label>
+                        <select id="evEstado" required>
+                            <option value="Activo">Activo</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row double">
+                    <div class="input-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="evFecha" required />
+                    </div>
+                    <div class="input-group">
+                        <label>Hora *</label>
+                        <input type="time" id="evHora" required />
+                    </div>
+                </div>
+
+                <div class="form-row double">
+                    <div class="input-group">
+                        <label>Lugar / Enlace</label>
+                        <input type="text" id="evLugar" />
+                    </div>
+                    <div class="input-group">
+                        <label>Cupo Máximo *</label>
+                        <input type="number" id="evCupo" min="1" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group full-width file-input-group">
+                        <label>Imagen del Evento (JPG/PNG)</label>
+                        <input type="file" id="evImagen" accept="image/jpeg, image/png" />
+                        <small class="file-hint">Deja vacío para conservar imagen actual al editar.</small>
+                    </div>
+                </div>
+
+                <p class="error-msg" id="modalError" style="display:none;"></p>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancel">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSaveEvento">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/eventos.js"></script>
+</body>
+
+</html>
