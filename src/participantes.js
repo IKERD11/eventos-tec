@@ -253,7 +253,95 @@ document.addEventListener('DOMContentLoaded', async () => {
         const closeModal = () => {
             modal.style.display = 'none';
             form.reset();
+            document.getElementById('nombreSuggestions').style.display = 'none';
+            document.getElementById('correoSuggestions').style.display = 'none';
         };
+
+        // --- Lógica de Autocompletado ---
+        const inputNombre = document.getElementById('partNombre');
+        const inputCorreo = document.getElementById('partCorreo');
+        const suggNombre = document.getElementById('nombreSuggestions');
+        const suggCorreo = document.getElementById('correoSuggestions');
+
+        let debounceTimeout = null;
+
+        async function fetchSuggestions(field, value, containerEl) {
+            if (value.length < 2) {
+                containerEl.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Buscamos en el historial de participantes que coincidan con el valor
+                const { data, error } = await supabase
+                    .from('participantes')
+                    .select('nombre, correo')
+                    .ilike(field, `%${value}%`)
+                    .limit(5);
+
+                if (error) throw error;
+
+                // Filtrar duplicados exactos en frontend (Supabase no tiene DISTINCT on select fácilmente)
+                const uniqueData = [];
+                const seen = new Set();
+                data.forEach(item => {
+                    if (!seen.has(item.correo)) {
+                        seen.add(item.correo);
+                        uniqueData.push(item);
+                    }
+                });
+
+                if (uniqueData.length > 0) {
+                    renderSuggestions(uniqueData, containerEl);
+                    containerEl.style.display = 'block';
+                } else {
+                    containerEl.style.display = 'none';
+                }
+            } catch (err) {
+                console.error("Error buscando sugerencias:", err);
+            }
+        }
+
+        function renderSuggestions(lista, containerEl) {
+            containerEl.innerHTML = '';
+            lista.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `<strong>${user.nombre}</strong><small>${user.correo}</small>`;
+
+                div.addEventListener('click', () => {
+                    inputNombre.value = user.nombre;
+                    inputCorreo.value = user.correo;
+                    suggNombre.style.display = 'none';
+                    suggCorreo.style.display = 'none';
+                });
+                containerEl.appendChild(div);
+            });
+        }
+
+        // Event Listeners con Debounce
+        inputNombre.addEventListener('input', (e) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                fetchSuggestions('nombre', e.target.value.trim(), suggNombre);
+            }, 300);
+        });
+
+        inputCorreo.addEventListener('input', (e) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                fetchSuggestions('correo', e.target.value.trim(), suggCorreo);
+            }, 300);
+        });
+
+        // Ocultar al dar clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete-container')) {
+                suggNombre.style.display = 'none';
+                suggCorreo.style.display = 'none';
+            }
+        });
+        // --------------------------------
 
         document.getElementById('closePartModal').addEventListener('click', closeModal);
         document.getElementById('btnCancelPart').addEventListener('click', closeModal);

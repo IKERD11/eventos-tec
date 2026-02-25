@@ -6,6 +6,8 @@
     padding: 15px 25px;
     border-radius: 12px;
     margin-bottom: 25px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .search-box {
@@ -36,6 +38,85 @@
     width: 18px;
     height: 18px;
     color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- Custom Select Dropdowns ---- */
+.custom-select {
+    position: relative;
+    width: 200px;
+    font-size: 0.95rem;
+}
+
+.select-selected {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.select-selected:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.select-items {
+    position: absolute;
+    background: rgba(30, 30, 40, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 99;
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeInDrop 0.2s ease forwards;
+}
+
+.select-hide {
+    display: none;
+}
+
+.select-items div {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 12px 15px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.select-items div:hover {
+    background-color: rgba(140, 82, 255, 0.3);
+    color: #fff;
+}
+
+body.light-theme .select-selected {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .select-items {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .select-items div {
+    color: #333;
+}
+
+body.light-theme .select-items div:hover {
+    background-color: rgba(140, 82, 255, 0.1);
+    color: var(--primary-color);
 }
 
 .btn-primary {
@@ -116,12 +197,14 @@
 .card-estado {
     position: absolute;
     top: 15px;
-    right: 15px;
+    left: 15px;
+    /* Moved from right to left to avoid overlapping the kebab menu */
     padding: 5px 12px;
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
+    z-index: 5;
 }
 
 .estado-Activo {
@@ -326,4 +409,178 @@ body.light-theme .form-row textarea {
 body.light-theme .form-row select option {
     background: #fff;
     color: #333;
+}
+
+/* ---- KEBAB MENU ---- */
+.kebab-menu {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 10;
+}
+
+.kebab-button {
+    transition: transform 0.2s;
+}
+
+.kebab-button:hover {
+    transform: scale(1.1);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: rgba(35, 35, 45, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 8px;
+    min-width: 180px;
+    padding: 5px 0;
+    display: none;
+    flex-direction: column;
+}
+
+.dropdown-menu.show {
+    display: flex;
+    animation: fadeInDrop 0.2s ease;
+}
+
+@keyframes fadeInDrop {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-dropdown {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 10px 15px;
+    text-align: left;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn-dropdown:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-dropdown.btn-danger {
+    color: #ff6b6b;
+}
+
+.btn-dropdown.btn-danger:hover {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 5px 0;
+}
+
+body.light-theme .dropdown-menu {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .btn-dropdown {
+    color: #333;
+}
+
+body.light-theme .dropdown-divider {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   FLATPICKR OVERRIDES (GLASSMORPHISM INTEGRATION)
+   ========================================================================== */
+.flatpickr-calendar {
+    background: rgba(30, 30, 40, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
+    border-radius: 12px !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.startRange.prevMonthDay,
+.flatpickr-day.endRange.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay,
+.flatpickr-day.startRange.nextMonthDay,
+.flatpickr-day.endRange.nextMonthDay {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.flatpickr-time {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent !important;
+}
+
+.flatpickr-time .numInputWrapper {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px;
+    margin: 5px;
+    transition: all 0.3s ease;
+}
+
+.flatpickr-time input.flatpickr-hour,
+.flatpickr-time input.flatpickr-minute,
+.flatpickr-time .flatpickr-time-separator {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:focus,
+.flatpickr-time .numInputWrapper:hover {
+    background: rgba(140, 82, 255, 0.3) !important;
+}
+
+body.light-theme .flatpickr-time {
+    border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-theme .flatpickr-time .numInputWrapper {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .flatpickr-time input.flatpickr-hour,
+body.light-theme .flatpickr-time input.flatpickr-minute,
+body.light-theme .flatpickr-time .flatpickr-time-separator {
+    color: #333 !important;
+}
+
+body.light-theme .flatpickr-calendar {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
 }

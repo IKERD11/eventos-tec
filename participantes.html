@@ -167,16 +167,18 @@
             </div>
             <form id="participantForm">
                 <div class="form-row">
-                    <div class="input-group full-width">
+                    <div class="input-group full-width autocomplete-container">
                         <label>Nombre Completo *</label>
-                        <input type="text" id="partNombre" required />
+                        <input type="text" id="partNombre" required autocomplete="off" />
+                        <div id="nombreSuggestions" class="autocomplete-items"></div>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="input-group full-width">
+                    <div class="input-group full-width autocomplete-container">
                         <label>Correo Electrónico *</label>
-                        <input type="email" id="partCorreo" required />
+                        <input type="email" id="partCorreo" required autocomplete="off" />
+                        <div id="correoSuggestions" class="autocomplete-items"></div>
                     </div>
                 </div>
 

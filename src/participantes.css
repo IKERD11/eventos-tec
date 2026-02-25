@@ -177,3 +177,90 @@ body.light-theme .participants-table tbody tr:hover {
 body.light-theme .slider {
     background-color: rgba(0, 0, 0, 0.15);
 }
+
+/* ---- AUTOCOMPLETE STYLES ---- */
+.autocomplete-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.autocomplete-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    /* Positioned below input */
+    margin-top: 5px;
+    background: rgba(35, 35, 45, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    /* Hidden by default */
+}
+
+/* Scrollbar for autocomplete */
+.autocomplete-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.autocomplete-items::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.autocomplete-items::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+}
+
+.autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background: rgba(140, 82, 255, 0.3);
+    /* Primary color slightly transparent */
+}
+
+.autocomplete-item strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.autocomplete-item small {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Light Theme overrides if needed */
+body.light-theme .autocomplete-items {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .autocomplete-item {
+    color: #333;
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .autocomplete-item:hover {
+    background: rgba(140, 82, 255, 0.1);
+}

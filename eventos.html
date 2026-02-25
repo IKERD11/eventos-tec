@@ -5,8 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eventos - SGEA</title>
-    <!-- Modern Google Font: Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Flatpickr for Modern Date/Time inputs -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
     <link rel="stylesheet" href="/src/style.css">
     <link rel="stylesheet" href="/src/dashboard.css">
     <link rel="stylesheet" href="/src/eventos.css">
@@ -72,15 +76,55 @@
 
         <div class="page-body">
             <div class="action-bar glass-panel">
-                <div class="search-box">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon">
-                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"></circle>
-                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35">
-                        </path>
-                    </svg>
-                    <input type="text" id="searchEvento" placeholder="Buscar evento..." />
+                <div class="left-actions"
+                    style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <div class="search-box" style="flex: 1; min-width: 250px; max-width: 400px; margin: 0;">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon">
+                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"></circle>
+                            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35">
+                            </path>
+                        </svg>
+                        <input type="text" id="searchEvento" placeholder="Buscar evento..." />
+                    </div>
+
+                    <div class="filters-container" style="display: flex; gap: 15px;">
+                        <!-- Custom Select: Estado -->
+                        <div class="custom-select" id="customSelectEstado" data-value="">
+                            <div class="select-selected glass-select">
+                                <span class="select-text">Todos los Estados</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="">Todos los Estados</div>
+                                <div data-value="Activo">Activos</div>
+                                <div data-value="Finalizado">Finalizados</div>
+                                <div data-value="Cancelado">Cancelados</div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Select: Modalidad -->
+                        <div class="custom-select" id="customSelectModalidad" data-value="">
+                            <div class="select-selected glass-select">
+                                <span class="select-text">Todas las Modalidades</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="">Todas las Modalidades</div>
+                                <div data-value="Presencial">Presencial</div>
+                                <div data-value="Virtual">Virtual</div>
+                                <div data-value="Híbrido">Híbrido</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button id="btnNuevoEvento" class="btn-primary">
+
+                <button id="btnNuevoEvento" class="btn-primary" style="white-space: nowrap;">
                     <svg viewBox="0 0 24 24" fill="none" class="icon">
                         <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round"></line>
@@ -186,6 +230,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
     <script type="module" src="/src/eventos.js"></script>
 </body>
 

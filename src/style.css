@@ -97,6 +97,11 @@ body::before {
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
+    color-scheme: dark;
+}
+
+body.light-theme .input-login {
+    color-scheme: light;
 }
 
 .input-login::placeholder {
@@ -253,6 +258,11 @@ body::before {
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
+    color-scheme: dark;
+}
+
+body.light-theme .input-group input {
+    color-scheme: light;
 }
 
 .input-group input::placeholder {

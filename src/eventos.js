@@ -91,6 +91,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="card-img">
                     <span class="card-estado estado-${ev.estado}">${ev.estado}</span>
                     ${imageTemplate}
+                    ${canEdit ? `
+                        <div class="kebab-menu">
+                            <button class="kebab-button" style="background:transparent;border:none;color:white;cursor:pointer;padding:5px;">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <button class="btn-dropdown drop-edit" data-id="${ev.id}">Editar Evento</button>
+                                <button class="btn-dropdown drop-copy" data-id="${ev.id}">Copiar enlace público</button>
+                                <div class="dropdown-divider"></div>
+                                <button class="btn-dropdown drop-delete btn-danger" data-id="${ev.id}">Eliminar</button>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="card-content">
                     <h3>${ev.titulo} ${isAdmin && !isCreator ? '<span style="color:#8c52ff;font-size:0.8rem;">(Admin/Todos)</span>' : ''}</h3>
@@ -101,26 +118,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span>👤 Creador: ${ev.perfiles?.nombre_completo || 'Desconocido'}</span>
                     </div>
                     <p style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">${ev.descripcion.substring(0, 60)}...</p>
-                    <div class="card-actions">
-                        <a href="/participantes.html?evento=${ev.id}" class="btn-card">Participantes</a>
-                        ${canEdit ? `
-                            <div>
-                                <button class="btn-card btn-edit" data-id="${ev.id}">Editar</button>
-                                <button class="btn-card btn-danger btn-delete" data-id="${ev.id}">Borrar</button>
-                            </div>
-                        ` : ''}
+                    <div class="card-actions" style="justify-content: flex-start;">
+                        <a href="/participantes.html?evento=${ev.id}" class="btn-card">👥 Ver Participantes</a>
                     </div>
                 </div>
             `;
             eventosGrid.appendChild(card);
         });
 
-        // Add Listeners to buttons
-        document.querySelectorAll('.btn-edit').forEach(btn => {
+        // Add Listeners to Dropdown Buttons
+        document.querySelectorAll('.kebab-button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const menu = btn.nextElementSibling;
+                // Close all others first
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+                    if (m !== menu) m.classList.remove('show');
+                });
+                menu.classList.toggle('show');
+            });
+        });
+
+        // Close dropdowns if clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.kebab-menu')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        document.querySelectorAll('.drop-edit').forEach(btn => {
             btn.addEventListener('click', (e) => openModal(e.target.dataset.id));
         });
-        document.querySelectorAll('.btn-delete').forEach(btn => {
+        document.querySelectorAll('.drop-delete').forEach(btn => {
             btn.addEventListener('click', (e) => promptDelete(e.target.dataset.id));
+        });
+        document.querySelectorAll('.drop-copy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                const url = window.location.origin + '/registro.html?evento=' + id;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('¡Enlace público copiado al portapapeles!');
+                    e.target.closest('.dropdown-menu').classList.remove('show');
+                }).catch(err => alert("Error copiando el enlace: ", err));
+            });
         });
     }
 
@@ -139,12 +179,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         form.reset();
         document.getElementById('eventoId').value = '';
         modalError.style.display = 'none';
+
+        // Reset Flatpickrs
+        if (datePicker) datePicker.clear();
+        if (timePicker) timePicker.clear();
     }
+
+    // Flatpickr instances
+    let datePicker = null;
+    let timePicker = null;
 
     async function openModal(id = null) {
         modalError.style.display = 'none';
         modal.style.display = 'flex';
         form.reset();
+
+        // Initialize Flatpickr if not already done, or re-apply settings
+        if (!datePicker) {
+            datePicker = flatpickr("#evFecha", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                theme: "dark"
+            });
+        }
+
+        if (!timePicker) {
+            timePicker = flatpickr("#evHora", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                theme: "dark"
+            });
+        }
 
         if (id) {
             document.getElementById('modalTitle').textContent = 'Editar Evento';
@@ -155,14 +223,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('evDescripcion').value = data.descripcion;
                 document.getElementById('evModalidad').value = data.modalidad;
                 document.getElementById('evEstado').value = data.estado;
-                document.getElementById('evFecha').value = data.fecha;
-                document.getElementById('evHora').value = data.hora;
                 document.getElementById('evLugar').value = data.lugar;
                 document.getElementById('evCupo').value = data.cupo_maximo;
+
+                // Set Flatpickr dates
+                datePicker.setDate(data.fecha);
+                timePicker.setDate(data.hora);
             }
         } else {
             document.getElementById('modalTitle').textContent = 'Crear Evento';
             document.getElementById('eventoId').value = '';
+            datePicker.clear();
+            timePicker.clear();
         }
     }
 
@@ -238,11 +310,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Handle Search filter
-    searchInput.addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase();
-        const filt = listaEventos.filter(ev => ev.titulo.toLowerCase().includes(val) || ev.descripcion.toLowerCase().includes(val));
-        renderEventos(filt);
+    // --- Search and Filters Logic ---
+    const customSelectEstado = document.getElementById('customSelectEstado');
+    const customSelectModalidad = document.getElementById('customSelectModalidad');
+
+    function applyFilters() {
+        const query = searchInput.value.toLowerCase();
+        const estado = customSelectEstado.dataset.value;
+        const modalidad = customSelectModalidad.dataset.value;
+
+        const filtered = listaEventos.filter(ev => {
+            const matchSearch = ev.titulo.toLowerCase().includes(query) || ev.descripcion.toLowerCase().includes(query);
+            const matchEstado = estado === '' || ev.estado === estado;
+            const matchModalidad = modalidad === '' || ev.modalidad === modalidad;
+            return matchSearch && matchEstado && matchModalidad;
+        });
+
+        renderEventos(filtered);
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+
+    // Setup Custom Selects
+    function setupCustomSelect(selectEl) {
+        const selected = selectEl.querySelector('.select-selected');
+        const items = selectEl.querySelector('.select-items');
+        const textSpan = selected.querySelector('.select-text');
+
+        // Toggle dropdown
+        selected.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // close others
+            document.querySelectorAll('.select-items').forEach(i => {
+                if (i !== items) i.classList.add('select-hide');
+            });
+            items.classList.toggle('select-hide');
+        });
+
+        // Click Option
+        items.querySelectorAll('div').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const val = opt.getAttribute('data-value');
+                const txt = opt.textContent;
+
+                textSpan.textContent = txt;
+                selectEl.dataset.value = val;
+                items.classList.add('select-hide');
+                applyFilters();
+            });
+        });
+    }
+
+    setupCustomSelect(customSelectEstado);
+    setupCustomSelect(customSelectModalidad);
+
+    // Close selects when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.select-items').forEach(i => i.classList.add('select-hide'));
     });
 
     loadEventos();
