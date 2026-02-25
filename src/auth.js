@@ -41,6 +41,21 @@ export async function checkSession() {
     return session;
 }
 
+export async function isAdmin() {
+    const session = await checkSession();
+    if (!session) return false;
+    try {
+        const { data: profile } = await supabase
+            .from('perfiles')
+            .select('rol')
+            .eq('id', session.user.id)
+            .single();
+        return profile?.rol === 'admin';
+    } catch (e) {
+        return false;
+    }
+}
+
 export async function resetPassword(email) {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/index.html',

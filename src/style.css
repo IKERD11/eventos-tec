@@ -16,6 +16,31 @@
     font-family: 'Outfit', sans-serif;
 }
 
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+    width: 6px;
+    /* modern slim scrollbar */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    /* barely visible track */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(140, 82, 255, 0.4);
+    /* glass purple thumb */
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(140, 82, 255, 0.8);
+    /* solid on hover */
+}
+
 body {
     min-height: 100vh;
     display: flex;

@@ -101,6 +101,7 @@ CREATE TABLE public.participantes (
     correo TEXT NOT NULL,
     evento_id UUID REFERENCES public.eventos(id) ON DELETE CASCADE NOT NULL,
     asistio BOOLEAN DEFAULT false,
+    estatus TEXT DEFAULT 'Confirmado' CHECK (estatus IN ('Confirmado', 'En Espera')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

@@ -1,4 +1,4 @@
-import { checkSession, logout } from './auth.js';
+import { checkSession, logout, isAdmin } from './auth.js';
 import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Mock user for layout testing
         sessionUser = { id: 'mock-uuid', email: 'docente@cuautla.tecnm.mx' };
         document.getElementById('userName').textContent = 'Docente Prueba';
+    }
+
+    if (await isAdmin()) {
+        const navAdmin = document.getElementById('navAdmin');
+        if (navAdmin) navAdmin.style.display = 'block';
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {

@@ -1,4 +1,4 @@
-import { checkSession, logout } from './auth.js';
+import { checkSession, logout, isAdmin } from './auth.js';
 import { supabase } from './supabase.js';
 import Chart from 'chart.js/auto';
 
@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) {
         console.warn("Supabase auth check failed. Mostrando dashboard en modo prueba.");
+    }
+
+    if (await isAdmin()) {
+        const navAdmin = document.getElementById('navAdmin');
+        if (navAdmin) navAdmin.style.display = 'block';
     }
 
     // Set up logout

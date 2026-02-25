@@ -1,4 +1,4 @@
-import { checkSession, logout } from './auth.js';
+import { checkSession, logout, isAdmin } from './auth.js';
 import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         nameNode.textContent = sessionUser.user_metadata?.nombre_completo || sessionUser.email;
     } catch (e) {
         console.warn("Supabase auth check failed. Layout cargado en modo vista.");
+    }
+
+    if (await isAdmin()) {
+        const navAdmin = document.getElementById('navAdmin');
+        if (navAdmin) navAdmin.style.display = 'block';
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -167,15 +172,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         function updateStats() {
-            const total = listaParticipantes.length;
+            const confirmados = listaParticipantes.filter(p => !p.estatus || p.estatus === 'Confirmado').length;
+            const enEspera = listaParticipantes.filter(p => p.estatus === 'En Espera').length;
             const max = currentEvent.cupo_maximo;
-            gaugeNum.textContent = `${total} / ${max}`;
+            gaugeNum.textContent = `${confirmados} / ${max}`;
+
+            // Add Waitlist visual indicator
+            const detailsText = `📅 ${currentEvent.fecha} | ⏰ ${currentEvent.hora} | ${currentEvent.modalidad}`;
+            detailsEl.innerHTML = detailsText + (enEspera > 0 ? ` <span style="color:var(--accent-color); font-weight:bold; margin-left:10px;">(${enEspera} en espera)</span>` : '');
 
             // Cerrar automáticamente si llega al límite (Visual y DB)
-            if (total >= max && currentEvent.estado !== 'Finalizado') {
+            if (confirmados >= max && currentEvent.estado !== 'Finalizado') {
                 gaugeNum.style.color = 'var(--error-color)';
-                // Here we could auto-update the event state to 'Finalizado' in DB
-                // supabase.from('eventos').update({estado: 'Finalizado'}).eq('id', currentEvent.id);
             } else {
                 gaugeNum.style.color = '#fff';
                 const isLight = document.body.classList.contains('light-theme');
@@ -186,7 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         function renderTable(participantes) {
             tbody.innerHTML = '';
             if (participantes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aún no hay participantes en este evento.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Aún no hay participantes en este evento.</td></tr>';
                 return;
             }
 
@@ -194,13 +202,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const tr = document.createElement('tr');
                 const dateStr = new Date(p.created_at).toLocaleString();
 
+                let estatusVal = p.estatus || 'Confirmado';
+                let badgeClass = estatusVal === 'Confirmado' ? 'badge-success' : 'badge-warning';
+                let estatusColor = estatusVal === 'Confirmado' ? 'var(--success-color, #4CAF50)' : 'var(--accent-color, #ffaa00)';
+                let estatusHtml = `<span style="background: ${estatusColor}20; color: ${estatusColor}; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:600;">${estatusVal}</span>`;
+
+                // Si está en espera, podemos dar la opción de confirmarlo manualmente
+                if (estatusVal === 'En Espera') {
+                    estatusHtml += `<button class="btn-icon btn-confirmar-espera" data-id="${p.id}" title="Pasar a Confirmado" style="margin-left:5px; padding:2px;"><svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12l5 5L20 7"></path></svg></button>`;
+                }
+
                 tr.innerHTML = `
                     <td style="font-weight:600;">${p.nombre}</td>
                     <td>${p.correo}</td>
+                    <td>${estatusHtml}</td>
                     <td style="font-size:0.85rem; opacity:0.8;">${dateStr}</td>
                     <td>
                         <label class="switch">
-                            <input type="checkbox" class="asistencia-toggle" data-id="${p.id}" ${p.asistio ? 'checked' : ''}>
+                            <input type="checkbox" class="asistencia-toggle" data-id="${p.id}" ${p.asistio ? 'checked' : ''} ${estatusVal === 'En Espera' ? 'disabled' : ''}>
                             <span class="slider"></span>
                         </label>
                     </td>
@@ -225,6 +244,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
             });
+
+            // Add confirm waitlist listeners
+            document.querySelectorAll('.btn-confirmar-espera').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    if (confirm("¿Estás seguro de mover a este participante de Lista de Espera a Confirmado?")) {
+                        try {
+                            const { error } = await supabase.from('participantes').update({ estatus: 'Confirmado' }).eq('id', id);
+                            if (error) throw error;
+                            loadData(); // recargar la tabla y estadisticas
+                        } catch (err) {
+                            alert("Error al confirmar participante: " + err.message);
+                        }
+                    }
+                });
+            });
         }
 
         searchInput.addEventListener('input', (e) => {
@@ -242,9 +277,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnSave = document.getElementById('btnSavePart');
 
         document.getElementById('btnAddParticipant').addEventListener('click', () => {
-            if (listaParticipantes.length >= currentEvent.cupo_maximo) {
-                alert("Este evento ha alcanzado su cupo máximo.");
-                return;
+            const confirmados = listaParticipantes.filter(p => !p.estatus || p.estatus === 'Confirmado').length;
+            if (confirmados >= currentEvent.cupo_maximo) {
+                if (!confirm("Este evento ha alcanzado su cupo máximo de confirmados. ¿Añadir a la Lista de Espera?")) {
+                    return;
+                }
             }
             modal.style.display = 'flex';
             modalError.style.display = 'none';
@@ -352,13 +389,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnSave.textContent = 'Guardando...';
             modalError.style.display = 'none';
 
-            if (listaParticipantes.length >= currentEvent.cupo_maximo) {
-                modalError.textContent = "Cupo máximo alcanzado.";
-                modalError.style.display = 'block';
-                btnSave.disabled = false;
-                btnSave.textContent = 'Guardar';
-                return;
-            }
+            const confirmados = listaParticipantes.filter(p => !p.estatus || p.estatus === 'Confirmado').length;
+            let estatusNuevo = confirmados >= currentEvent.cupo_maximo ? 'En Espera' : 'Confirmado';
 
             const nombre = document.getElementById('partNombre').value.trim();
             const correo = document.getElementById('partCorreo').value.trim();
@@ -369,7 +401,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (exist) throw new Error("Este correo ya está registrado en el evento.");
 
                 const { error } = await supabase.from('participantes').insert([{
-                    nombre, correo, evento_id: currentEvent.id
+                    nombre, correo, evento_id: currentEvent.id, estatus: estatusNuevo
                 }]);
                 if (error) throw error;
 

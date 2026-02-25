@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendario - SGEA</title>
+    <!-- Modern Google Font: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="stylesheet" href="/src/dashboard.css">
+
+    <!-- FullCalendar CSS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+
+    <style>
+        #calendar {
+            width: 100%;
+            height: calc(100vh - 160px);
+            /* Better fit for available screen */
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Table Grid Lines - subtle transparency */
+        .fc-theme-standard td,
+        .fc-theme-standard th,
+        .fc-theme-standard .fc-scrollgrid {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .light-theme .fc-theme-standard td,
+        .light-theme .fc-theme-standard th,
+        .light-theme .fc-theme-standard .fc-scrollgrid {
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Calendar Header (Title) */
+        .fc-toolbar-title {
+            font-weight: 700 !important;
+            font-size: 1.8rem !important;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+            color: var(--text-color);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Calendar Primary Buttons (Month, Week, Day, Today, Prev, Next) */
+        .fc-button-primary {
+            background: rgba(140, 82, 255, 0.2) !important;
+            /* Glass effect instead of solid purple */
+            border: 1px solid rgba(140, 82, 255, 0.5) !important;
+            color: var(--text-color) !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 600 !important;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            text-transform: capitalize;
+        }
+
+        .fc .fc-button-primary:not(:disabled):active,
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+            color: #fff !important;
+            box-shadow: 0 0 10px rgba(140, 82, 255, 0.4);
+        }
+
+        .fc .fc-button-primary:hover {
+            background: rgba(140, 82, 255, 0.4) !important;
+        }
+
+        /* Remove focus outline on buttons */
+        .fc-button:focus {
+            box-shadow: none !important;
+        }
+
+        /* Separate grouped buttons (prev/next and month/week/day) */
+        .fc-button-group {
+            display: flex;
+            gap: 8px;
+            /* Added separation here */
+        }
+
+        .fc-button-group>.fc-button {
+            flex: 1 1 auto;
+            border-radius: 8px !important;
+            /* Restore rounded corners to all separated buttons */
+        }
+
+        /* "Today" Cell Override (Fixes the ugly default yellow) */
+        .fc-day-today {
+            background: rgba(140, 82, 255, 0.15) !important;
+        }
+
+        .light-theme .fc-day-today {
+            background: rgba(140, 82, 255, 0.1) !important;
+        }
+
+        /* Days of the week header (dom, lun, mar...) */
+        .fc-col-header-cell-cushion {
+            padding: 12px 0 !important;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none !important;
+        }
+
+        /* Day Numbers inside the squares */
+        .fc-daygrid-day-number {
+            color: var(--text-color);
+            padding: 8px 10px !important;
+            font-weight: 500;
+            text-decoration: none !important;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+
+        .fc-daygrid-day-number:hover {
+            opacity: 1;
+            text-decoration: underline !important;
+        }
+
+        /* Day Cell Hover effect (excluding past/outside days for cleaner look) */
+        .fc-daygrid-day:not(.fc-day-other):hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .light-theme .fc-daygrid-day:not(.fc-day-other):hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        /* Event Pills */
+        .fc-event {
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border: none !important;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        /* Modal custom info para eventos */
+        .cal-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .cal-modal-content {
+            background: var(--bg-color);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .light-theme .cal-modal-content {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="app-body">
+    <nav class="sidebar glass-panel">
+        <div class="sidebar-header">
+            <h2>SGEA</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/dashboard.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 22V12h6v10"></path>
+                    </svg> Dashboard
+                </a></li>
+            <li><a href="/calendario.html" class="active">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg> Calendario
+                </a></li>
+            <li><a href="/eventos.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round"></rect>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18">
+                        </path>
+                    </svg> Eventos
+                </a></li>
+            <li><a href="/participantes.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        </circle>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+                    </svg> Participantes
+                </a></li>
+            <li id="navAdmin" style="display:none;"><a href="/usuarios.html">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg> Gestor Admin
+                </a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="btn-logout">
+                <svg viewBox="0 0 24 24" fill="none" class="icon">
+                    <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"></path>
+                </svg> Salir
+            </button>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <header class="top-header glass-panel">
+            <div class="page-title">
+                <h1>Calendario de Eventos</h1>
+            </div>
+            <div class="user-info" style="display: flex; gap: 15px; align-items: center;">
+                <span id="userName">Cargando...</span>
+                <button id="themeToggle" class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="glass-panel" style="padding: 20px;">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Evento -->
+    <div id="calEventModal" class="cal-modal-overlay">
+        <div class="cal-modal-content">
+            <button id="closeCalModal"
+                style="position:absolute; right:20px; top:20px; background:none; border:none; color:var(--text-color); cursor:pointer;"><svg
+                    viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg></button>
+            <h2 id="mcTitle" style="margin-bottom:10px;">Título</h2>
+            <p id="mcDate" style="font-weight:600; color:var(--accent-color); margin-bottom:15px;"></p>
+            <p id="mcDesc" style="margin-bottom:15px; opacity:0.8;"></p>
+            <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
+            <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
+            <hr style="border:0; border-top:1px solid rgba(128,128,128,0.2); margin: 20px 0;" />
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+                <a id="mcBtnPart" href="#" class="btn-secondary"
+                    style="text-decoration:none; text-align:center; flex:1;">Ver Participantes</a>
+                <a id="mcBtnReg" href="#" target="_blank" class="btn-primary"
+                    style="text-decoration:none; text-align:center; flex:1;">Registro Público</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/calendario.js"></script>
+</body>
+
+</html>

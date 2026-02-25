@@ -4,11 +4,49 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - SGEA</title>
+    <title>Gestión de Usuarios - SGEA</title>
     <!-- Modern Google Font: Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css">
     <link rel="stylesheet" href="/src/dashboard.css">
+    <style>
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .light-theme .users-table th,
+        .light-theme .users-table td {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .users-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .users-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .light-theme .users-table tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+    </style>
 </head>
 
 <body class="app-body">
@@ -17,7 +55,7 @@
             <h2>SGEA</h2>
         </div>
         <ul class="nav-links">
-            <li><a href="/dashboard.html" class="active">
+            <li><a href="/dashboard.html">
                     <svg viewBox="0 0 24 24" fill="none" class="icon">
                         <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
@@ -51,7 +89,7 @@
                             d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
                     </svg> Participantes
                 </a></li>
-            <li id="navAdmin" style="display:none;"><a href="/usuarios.html">
+            <li><a href="/usuarios.html" class="active">
                     <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -74,17 +112,9 @@
     <div class="main-content">
         <header class="top-header glass-panel">
             <div class="page-title">
-                <h1>Dashboard overview</h1>
+                <h1>Panel de Gestión de Usuarios</h1>
             </div>
             <div class="user-info" style="display: flex; gap: 15px; align-items: center;">
-                <button id="btnExportDashboard" class="btn-export-glass">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg> Exportar
-                </button>
                 <span id="userName">Cargando...</span>
                 <button id="themeToggle" class="btn-icon">
                     <svg viewBox="0 0 24 24" fill="none" class="icon">
@@ -96,34 +126,39 @@
         </header>
 
         <div class="page-body">
-            <div class="stats-grid">
-                <div class="stat-card glass-panel">
-                    <h3>Total Eventos</h3>
-                    <p class="stat-value" id="statTotalEventos">-</p>
-                </div>
-                <div class="stat-card glass-panel">
-                    <h3>Eventos Activos</h3>
-                    <p class="stat-value" id="statEventosActivos">-</p>
-                </div>
-                <div class="stat-card glass-panel">
-                    <h3>Total Participantes</h3>
-                    <p class="stat-value" id="statParticipantes">-</p>
+            <div class="action-bar glass-panel" style="margin-bottom: 25px;">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"></circle>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35">
+                        </path>
+                    </svg>
+                    <input type="text" id="searchUsuario" placeholder="Buscar usuario por nombre..." />
                 </div>
             </div>
 
-            <div class="charts-container">
-                <div class="chart-card glass-panel">
-                    <h2>Eventos por Mes</h2>
-                    <div style="position: relative; height: 320px; width: 100%;">
-                        <canvas id="eventosChart"></canvas>
-                    </div>
-                </div>
+            <div class="table-container glass-panel">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>ID Usuario</th>
+                            <th>Rol Actual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTbody">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="/src/dashboard.js"></script>
+    <script type="module" src="/src/usuarios.js"></script>
 </body>
 
 </html>

@@ -54,23 +54,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(`Este evento está marcado como ${eventData.estado} y ya no acepta registros.`);
         }
 
-        // Check if full
+        // Check if full (solo confirmados)
         const { count, error: countErr } = await supabase
             .from('participantes')
             .select('*', { count: 'exact', head: true })
-            .eq('evento_id', eventoId);
+            .eq('evento_id', eventoId)
+            .eq('estatus', 'Confirmado');
 
+        let isFull = false;
         if (!countErr && count >= eventData.cupo_maximo) {
-            throw new Error("Lo sentimos, el evento ya ha alcanzado su cupo máximo de participantes.");
+            isFull = true;
+            // No bloqueamos el form, pueden unirse a lista de espera
         }
 
-        renderEvent(eventData, count || 0);
+        renderEvent(eventData, count || 0, isFull);
 
     } catch (err) {
         showError(err.message);
     }
 
-    function renderEvent(ev, count) {
+    function renderEvent(ev, count, isFull) {
         loadingState.style.display = 'none';
         eventContainer.style.display = 'flex';
 
@@ -83,7 +86,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         title.textContent = ev.titulo;
         dateLine.textContent = `📅 ${ev.fecha} ⏰ ${ev.hora}`;
         locationLine.textContent = `📍 ${ev.lugar || 'Por definir'} (${ev.modalidad})`;
-        capacityLine.textContent = `👥 Cupo: ${count}/${ev.cupo_maximo}`;
+
+        if (isFull) {
+            capacityLine.innerHTML = `👥 Cupo: <span style="color: var(--accent-color);">Lleno (${count}/${ev.cupo_maximo})</span> - Registros a Lista de Espera`;
+            btnSubmit.textContent = 'Unirme a Lista de Espera';
+        } else {
+            capacityLine.textContent = `👥 Cupo Confirmado: ${count}/${ev.cupo_maximo}`;
+        }
+
         description.textContent = ev.descripcion;
     }
 
@@ -115,32 +125,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         */
 
         try {
-            // Re-check capacity (basic race-condition protection)
+            // Re-check capacity for confirmed participants
             const { count } = await supabase
                 .from('participantes')
                 .select('*', { count: 'exact', head: true })
-                .eq('evento_id', eventoId);
+                .eq('evento_id', eventoId)
+                .eq('estatus', 'Confirmado');
 
+            let nuevoEstatus = 'Confirmado';
             if (count >= eventData.cupo_maximo) {
-                throw new Error("El evento se acaba de llenar. Cupo máximo alcanzado.");
+                nuevoEstatus = 'En Espera';
             }
 
             // Check if user already registered for this specific event
             const { data: existingUser } = await supabase
                 .from('participantes')
-                .select('id')
+                .select('id, estatus')
                 .eq('evento_id', eventoId)
                 .eq('correo', correo)
                 .single();
 
             if (existingUser) {
-                throw new Error("Este correo ya está registrado en este evento.");
+                throw new Error(`Este correo ya está registrado en este evento (Estatus: ${existingUser.estatus}).`);
             }
 
             // Insert new participant (Must be allowed by RLS policy for insert/true)
             const { error: insErr } = await supabase
                 .from('participantes')
-                .insert([{ nombre, correo, evento_id: eventoId }]);
+                .insert([{ nombre, correo, evento_id: eventoId, estatus: nuevoEstatus }]);
 
             if (insErr) {
                 throw new Error("Ocurrió un error guardando el registro.");
@@ -149,6 +161,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Show success
             eventContainer.style.display = 'none';
             successState.style.display = 'block';
+
+            if (nuevoEstatus === 'En Espera') {
+                successState.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="var(--accent-color)" stroke-width="2" style="width: 60px; height: 60px; margin: 0 auto 1.5rem auto; display: block;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <h2>¡Estás en Lista de Espera!</h2>
+                    <p style="color: var(--text-muted); margin-top: 10px;">El evento ha alcanzado su cupo máximo. Te hemos añadido a la lista de espera y tu lugar dependerá de si se libera un espacio.</p>
+                `;
+            }
 
         } catch (err) {
             regError.textContent = err.message;
