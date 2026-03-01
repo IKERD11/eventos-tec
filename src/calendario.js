@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     list: 'Lista'
                 },
                 events: calendarEvents,
+                dateClick: function (info) {
+                    window.location.href = `/eventos.html?action=new&date=${info.dateStr}`;
+                },
                 eventClick: function (info) {
                     showEventModal(info.event);
                 }

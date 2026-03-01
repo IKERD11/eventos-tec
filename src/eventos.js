@@ -86,12 +86,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isCreator = (ev.creado_por === sessionUser.id);
             const canEdit = isCreator || isAdmin;
 
-            const imageTemplate = ev.imagen_url
-                ? `<img src="${ev.imagen_url}" alt="${ev.titulo}">`
+            const imageTemplate = (ev.imagenes_url && ev.imagenes_url.length > 0)
+                ? `<img src="${ev.imagenes_url[0]}" alt="${ev.titulo}">`
                 : `<div style="padding: 20px; textAlign: center; width: 100%; display: flex; align-items: center; justify-content: center; height: 100%;"><span>Sin Imagen</span></div>`;
 
             const card = document.createElement('div');
-            card.className = 'evento-card glass-panel';
+            card.className = 'evento-card glass-panel cursor-pointer';
+            card.dataset.id = ev.id; // Store ID for click event
             card.innerHTML = `
                 <div class="card-img">
                     <span class="card-estado estado-${ev.estado}">${ev.estado}</span>
@@ -124,10 +125,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <p style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">${ev.descripcion.substring(0, 60)}...</p>
                     <div class="card-actions" style="justify-content: flex-start;">
-                        <a href="/participantes.html?evento=${ev.id}" class="btn-card">👥 Ver Participantes</a>
+                        <a href="/participantes.html?evento=${ev.id}" class="btn-card stop-propagation">👥 Ver Participantes</a>
                     </div>
                 </div>
             `;
+
+            // Add click event to open details
+            card.addEventListener('click', (e) => {
+                // Prevent opening if clicking on the kebab menu or its contents, or buttons
+                if (e.target.closest('.kebab-menu') || e.target.closest('.stop-propagation')) {
+                    return;
+                }
+                abrirDetalle(ev.id);
+            });
+
             eventosGrid.appendChild(card);
         });
 
@@ -135,6 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.kebab-button').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Prevenir que abra detalles
                 const menu = btn.nextElementSibling;
                 // Close all others first
                 document.querySelectorAll('.dropdown-menu.show').forEach(m => {
@@ -179,11 +191,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('btnCancel').addEventListener('click', closeModal);
 
+    // File Input display logic
+    const fileInput = document.getElementById('evImagen');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const originalFileText = fileNameDisplay.textContent;
+
+    fileInput.addEventListener('change', (e) => {
+        const fileCount = e.target.files.length;
+        if (fileCount === 1) {
+            fileNameDisplay.textContent = e.target.files[0].name;
+        } else if (fileCount > 1) {
+            fileNameDisplay.textContent = `${fileCount} archivos seleccionados`;
+        } else {
+            fileNameDisplay.textContent = originalFileText;
+        }
+    });
+
     function closeModal() {
         modal.style.display = 'none';
         form.reset();
         document.getElementById('eventoId').value = '';
         modalError.style.display = 'none';
+        fileNameDisplay.textContent = originalFileText;
 
         // Reset Flatpickrs
         if (datePicker) datePicker.clear();
@@ -194,11 +223,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     let datePicker = null;
     let timePicker = null;
 
-    async function openModal(id = null) {
-        modalError.style.display = 'none';
-        modal.style.display = 'flex';
-        form.reset();
+    // --- Form Custom Select Helpers ---
+    function updateFormCustomSelect(inputId, selectContainerId, value) {
+        document.getElementById(inputId).value = value;
+        const container = document.getElementById(selectContainerId);
+        if (!container) return;
+        container.dataset.value = value;
+        const textSpan = container.querySelector('.select-text');
 
+        // Find text corresponding to value
+        const items = container.querySelectorAll('.select-items div');
+        let foundText = value;
+        items.forEach(item => {
+            if (item.dataset.value === value) {
+                foundText = item.textContent;
+            }
+        });
+        textSpan.textContent = foundText;
+    }
+
+    function setupFormCustomSelect() {
+        document.querySelectorAll('.form-custom-select').forEach(container => {
+            const selected = container.querySelector('.select-selected');
+            const items = container.querySelector('.select-items');
+            const hiddenInputId = container.id.replace('customSelectForm', 'ev');
+
+            selected.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Close others
+                document.querySelectorAll('.select-items').forEach(i => {
+                    if (i !== items) i.classList.add('select-hide');
+                });
+                items.classList.toggle('select-hide');
+            });
+
+            items.querySelectorAll('div').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    updateFormCustomSelect(hiddenInputId, container.id, opt.dataset.value);
+                    items.classList.add('select-hide');
+                });
+            });
+        });
+    }
+    setupFormCustomSelect();
+
+    async function openModal(id = null, preDate = null) {
         // Initialize Flatpickr if not already done, or re-apply settings
         if (!datePicker) {
             datePicker = flatpickr("#evFecha", {
@@ -219,6 +289,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        modalError.style.display = 'none';
+
         if (id) {
             document.getElementById('modalTitle').textContent = 'Editar Evento';
             const { data, error } = await supabase.from('eventos').select('*').eq('id', id).single();
@@ -226,8 +298,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('eventoId').value = data.id;
                 document.getElementById('evTitulo').value = data.titulo;
                 document.getElementById('evDescripcion').value = data.descripcion;
-                document.getElementById('evModalidad').value = data.modalidad;
-                document.getElementById('evEstado').value = data.estado;
+
+                updateFormCustomSelect('evModalidad', 'customSelectFormModalidad', data.modalidad);
+                updateFormCustomSelect('evEstado', 'customSelectFormEstado', data.estado);
+                updateFormCustomSelect('evClasificacion', 'customSelectFormClasificacion', data.clasificacion || 'Institucional');
+
                 document.getElementById('evLugar').value = data.lugar;
                 document.getElementById('evCupo').value = data.cupo_maximo;
 
@@ -238,9 +313,114 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             document.getElementById('modalTitle').textContent = 'Crear Evento';
             document.getElementById('eventoId').value = '';
-            datePicker.clear();
+
+            updateFormCustomSelect('evModalidad', 'customSelectFormModalidad', 'Presencial');
+            updateFormCustomSelect('evEstado', 'customSelectFormEstado', 'Activo');
+            updateFormCustomSelect('evClasificacion', 'customSelectFormClasificacion', 'Institucional');
+
+            if (preDate) {
+                // If it's a date string, we can set it.
+                datePicker.setDate(preDate);
+            } else {
+                datePicker.clear();
+            }
             timePicker.clear();
         }
+
+        modal.style.display = 'flex';
+    }
+
+    // --- Detalle Modal Logic ---
+    const detalleModal = document.getElementById('detalleModal');
+
+    document.getElementById('closeDetalleModal').addEventListener('click', () => {
+        detalleModal.style.display = 'none';
+    });
+
+    function abrirDetalle(id) {
+        const ev = listaEventos.find(e => e.id === id);
+        if (!ev) return;
+
+        // Reset info
+        document.getElementById('detTitulo').textContent = ev.titulo;
+        document.getElementById('detEstado').textContent = ev.estado;
+        document.getElementById('detEstado').className = `chip estado-${ev.estado}`;
+        document.getElementById('detModalidad').textContent = ev.modalidad;
+        document.getElementById('detDescripcion').textContent = ev.descripcion;
+        document.getElementById('detFecha').textContent = ev.fecha;
+        document.getElementById('detHora').textContent = ev.hora;
+        document.getElementById('detLugar').textContent = ev.lugar || 'No especificado';
+        document.getElementById('detCupo').textContent = ev.cupo_maximo;
+        document.getElementById('detCreador').textContent = ev.perfiles?.nombre_completo || 'Desconocido';
+
+        document.getElementById('btnDetalleParticipantes').onclick = () => {
+            window.location.href = `/participantes.html?evento=${ev.id}`;
+        };
+
+        // Render Gallery
+        const imgPrincipal = document.getElementById('detImgPrincipal');
+        const detNoImg = document.getElementById('detNoImg');
+        const detMiniaturas = document.getElementById('detMiniaturas');
+        const btnDownload = document.getElementById('btnDownloadImg');
+
+        detMiniaturas.innerHTML = ''; // clear previous
+
+        // Helper func to safely force download via object url
+        const setupDownload = (url, fallbackTitle) => {
+            btnDownload.style.display = 'flex';
+            btnDownload.onclick = async () => {
+                try {
+                    // Fetch block forces true download instead of nav
+                    btnDownload.style.opacity = '0.5';
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const localUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = localUrl;
+                    const cleanName = fallbackTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const ext = url.split('.').pop().split('?')[0] || 'jpg';
+                    a.download = `evento_${cleanName}_IMG.${ext}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(localUrl);
+                    document.body.removeChild(a);
+                } catch (err) {
+                    console.error('Error downloading the image', err);
+                    window.open(url, '_blank'); // fallback
+                } finally {
+                    btnDownload.style.opacity = '1';
+                }
+            };
+        };
+
+        if (ev.imagenes_url && ev.imagenes_url.length > 0) {
+            imgPrincipal.style.display = 'block';
+            detNoImg.style.display = 'none';
+            imgPrincipal.src = ev.imagenes_url[0];
+            setupDownload(ev.imagenes_url[0], ev.titulo);
+
+            if (ev.imagenes_url.length > 1) {
+                ev.imagenes_url.forEach((url, i) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = url;
+                    thumb.className = `thumb-img ${i === 0 ? 'active' : ''}`;
+                    thumb.onclick = () => {
+                        imgPrincipal.src = url;
+                        setupDownload(url, ev.titulo);
+                        document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    };
+                    detMiniaturas.appendChild(thumb);
+                });
+            }
+        } else {
+            imgPrincipal.style.display = 'none';
+            btnDownload.style.display = 'none';
+            detNoImg.style.display = 'flex';
+        }
+
+        detalleModal.style.display = 'flex';
     }
 
     // Handle Form Submit
@@ -251,24 +431,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         modalError.style.display = 'none';
 
         const id = document.getElementById('eventoId').value;
-        const fileInput = document.getElementById('evImagen');
-        const file = fileInput.files[0];
+        const files = fileInput.files;
 
         try {
-            let imagen_url = null;
+            let imagenes_url = [];
 
-            // Simple File Upload to Supabase Storage if file exists
-            if (file) {
-                if (file.size > 2 * 1024 * 1024) throw new Error("La imagen no debe superar los 2MB.");
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${sessionUser.id}_${Date.now()}.${fileExt}`;
-                const filePath = `portadas/${fileName}`;
+            // Multiple File Upload to Supabase Storage if files exist
+            if (files.length > 0) {
+                const uploadPromises = Array.from(files).map(async (file, index) => {
+                    if (file.size > 2 * 1024 * 1024) throw new Error(`El archivo ${file.name} supera los 2MB.`);
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${sessionUser.id}_${Date.now()}_${index}.${fileExt}`;
+                    const filePath = `portadas/${fileName}`;
 
-                const { error: uploadError } = await supabase.storage.from('eventos').upload(filePath, file);
-                if (uploadError) throw uploadError;
+                    const { error: uploadError } = await supabase.storage.from('eventos').upload(filePath, file);
+                    if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = supabase.storage.from('eventos').getPublicUrl(filePath);
-                imagen_url = publicUrlData.publicUrl;
+                    const { data: publicUrlData } = supabase.storage.from('eventos').getPublicUrl(filePath);
+                    return publicUrlData.publicUrl;
+                });
+
+                // Wait for all uploads to finish
+                imagenes_url = await Promise.all(uploadPromises);
             }
 
             const evtData = {
@@ -276,13 +460,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 descripcion: document.getElementById('evDescripcion').value,
                 modalidad: document.getElementById('evModalidad').value,
                 estado: document.getElementById('evEstado').value,
+                clasificacion: document.getElementById('evClasificacion').value,
                 fecha: document.getElementById('evFecha').value,
                 hora: document.getElementById('evHora').value,
                 lugar: document.getElementById('evLugar').value,
                 cupo_maximo: parseInt(document.getElementById('evCupo').value)
             };
 
-            if (imagen_url) evtData.imagen_url = imagen_url;
+            // Sólo agregar la columna si subieron imágenes nuevas
+            // Si el objeto se está editando y el array está vacío, significa que el usuario
+            // no subió fotos nuevas, entonces conservamos las que ya tiene en BD y no pasamos este campo.
+            if (imagenes_url.length > 0) {
+                evtData.imagenes_url = imagenes_url;
+            }
 
             if (id) {
                 // Update
@@ -291,6 +481,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 // Insert
                 evtData.creado_por = sessionUser.id; // required by our schema safely
+                // Para nuevos eventos sin foto, pasamos un array vacío explícitamente.
+                if (!evtData.imagenes_url) evtData.imagenes_url = [];
                 const { error: insErr } = await supabase.from('eventos').insert([evtData]);
                 if (insErr) throw insErr;
             }
@@ -319,22 +511,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customSelectEstado = document.getElementById('customSelectEstado');
     const customSelectModalidad = document.getElementById('customSelectModalidad');
 
+    // Sidebar active filters
+    let activeSidebarFilter = { type: 'all', val: 'all' };
+
     function applyFilters() {
         const query = searchInput.value.toLowerCase();
         const estado = customSelectEstado.dataset.value;
         const modalidad = customSelectModalidad.dataset.value;
 
+        const hoyStr = new Date().toISOString().split('T')[0];
+
         const filtered = listaEventos.filter(ev => {
             const matchSearch = ev.titulo.toLowerCase().includes(query) || ev.descripcion.toLowerCase().includes(query);
             const matchEstado = estado === '' || ev.estado === estado;
             const matchModalidad = modalidad === '' || ev.modalidad === modalidad;
-            return matchSearch && matchEstado && matchModalidad;
+
+            // Sidebar logic
+            let matchSidebar = true;
+            if (activeSidebarFilter.type === 'clasificacion') {
+                matchSidebar = (ev.clasificacion === activeSidebarFilter.val);
+            } else if (activeSidebarFilter.type === 'tiempo') {
+                if (activeSidebarFilter.val === 'proximos') {
+                    matchSidebar = (ev.fecha >= hoyStr);
+                } else if (activeSidebarFilter.val === 'pasados') {
+                    matchSidebar = (ev.fecha < hoyStr);
+                }
+            }
+
+            return matchSearch && matchEstado && matchModalidad && matchSidebar;
         });
 
         renderEventos(filtered);
     }
 
     searchInput.addEventListener('input', applyFilters);
+
+    // Setup Sidebar Accordion and Filters
+    const toggleSubmenu = document.getElementById('toggleSubmenuEventos');
+    const submenu = document.getElementById('submenuEventos');
+
+    if (toggleSubmenu && submenu) {
+        toggleSubmenu.addEventListener('click', (e) => {
+            e.preventDefault();
+            submenu.classList.toggle('expanded');
+            toggleSubmenu.classList.toggle('expanded');
+        });
+
+        const sidebarFilters = document.querySelectorAll('.sidebar-filter');
+        sidebarFilters.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Update styling
+                sidebarFilters.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Apply filter
+                activeSidebarFilter.type = btn.dataset.type;
+                activeSidebarFilter.val = btn.dataset.val;
+                applyFilters();
+            });
+        });
+    }
 
     // Setup Custom Selects
     function setupCustomSelect(selectEl) {
@@ -375,4 +612,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     loadEventos();
+
+    // Check URL Parameters for pre-filled actions
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'new') {
+        const preDate = urlParams.get('date');
+        openModal(null, preDate);
+
+        // Remove the parameters from the URL without refreshing to keep it clean
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+    }
 });

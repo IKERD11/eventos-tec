@@ -38,14 +38,45 @@
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg> Calendario
                 </a></li>
-            <li><a href="/eventos.html" class="active">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round"></rect>
-                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18">
-                        </path>
-                    </svg> Eventos
-                </a></li>
+            <li class="has-submenu-parent">
+                <a href="#" class="active has-submenu" id="toggleSubmenuEventos">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round"></rect>
+                            <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                d="M16 2v4M8 2v4M3 10h18"></path>
+                        </svg> Eventos
+                    </div>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="submenu-arrow">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </a>
+                <ul class="sidebar-submenu" id="submenuEventos">
+                    <li><a href="#" class="sidebar-filter active" data-type="all" data-val="all">Todos los Eventos</a>
+                    </li>
+                    <li class="submenu-group">Tiempo</li>
+                    <li><a href="#" class="sidebar-filter" data-type="tiempo" data-val="proximos">Próximos</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="tiempo" data-val="pasados">Pasados</a></li>
+                    <li class="submenu-group">Carreras</li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Ingeniería Industrial">Ingeniería Industrial</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion" data-val="ISC">Sistemas (ISC)</a>
+                    </li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion" data-val="IGE">Gestión Empresarial
+                            (IGE)</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Ingeniería Mecatrónica">Mecatrónica</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Ingeniería Electrónica">Electrónica</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Ingeniería Civil">Civil</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Contador Público">Contador Público</a></li>
+                    <li><a href="#" class="sidebar-filter" data-type="clasificacion"
+                            data-val="Institucional">Institucionales</a></li>
+                </ul>
+            </li>
             <li><a href="/participantes.html">
                     <svg viewBox="0 0 24 24" fill="none" class="icon">
                         <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -191,19 +222,67 @@
                 <div class="form-row double">
                     <div class="input-group">
                         <label>Modalidad *</label>
-                        <select id="evModalidad" required>
-                            <option value="Presencial">Presencial</option>
-                            <option value="Virtual">Virtual</option>
-                            <option value="Híbrido">Híbrido</option>
-                        </select>
+                        <input type="hidden" id="evModalidad" required value="Presencial" />
+                        <div class="custom-select form-custom-select" id="customSelectFormModalidad"
+                            data-value="Presencial">
+                            <div class="select-selected">
+                                <span class="select-text">Presencial</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="Presencial">Presencial</div>
+                                <div data-value="Virtual">Virtual</div>
+                                <div data-value="Híbrido">Híbrido</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label>Estado *</label>
-                        <select id="evEstado" required>
-                            <option value="Activo">Activo</option>
-                            <option value="Finalizado">Finalizado</option>
-                            <option value="Cancelado">Cancelado</option>
-                        </select>
+                        <input type="hidden" id="evEstado" required value="Activo" />
+                        <div class="custom-select form-custom-select" id="customSelectFormEstado" data-value="Activo">
+                            <div class="select-selected">
+                                <span class="select-text">Activo</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="Activo">Activo</div>
+                                <div data-value="Finalizado">Finalizado</div>
+                                <div data-value="Cancelado">Cancelado</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group full-width">
+                        <label>Clasificación / Carrera *</label>
+                        <input type="hidden" id="evClasificacion" required value="Institucional" />
+                        <div class="custom-select form-custom-select" id="customSelectFormClasificacion"
+                            data-value="Institucional">
+                            <div class="select-selected">
+                                <span class="select-text">Institucional</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide form-select-items">
+                                <div data-value="Institucional">Institucional</div>
+                                <div data-value="Ingeniería Industrial">Ingeniería Industrial</div>
+                                <div data-value="ISC">Sistemas Computacionales (ISC)</div>
+                                <div data-value="IGE">Gestión Empresarial (IGE)</div>
+                                <div data-value="Ingeniería Mecatrónica">Ingeniería Mecatrónica</div>
+                                <div data-value="Ingeniería Electrónica">Ingeniería Electrónica</div>
+                                <div data-value="Ingeniería Civil">Ingeniería Civil</div>
+                                <div data-value="Contador Público">Contador Público</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -230,10 +309,23 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="input-group full-width file-input-group">
-                        <label>Imagen del Evento (JPG/PNG)</label>
-                        <input type="file" id="evImagen" accept="image/jpeg, image/png" />
-                        <small class="file-hint">Deja vacío para conservar imagen actual al editar.</small>
+                    <div class="input-group full-width">
+                        <label>Imágenes del Evento (JPG/PNG)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="evImagen" accept="image/jpeg, image/png" multiple />
+                            <div class="file-upload-content">
+                                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span class="file-upload-text" id="fileNameDisplay">Arrastra imágenes o haz clic
+                                    aquí</span>
+                            </div>
+                        </div>
+                        <small class="file-hint">Puedes seleccionar múltiples archivos. Deja vacío para conservar
+                            imágenes actuales al editar.</small>
                     </div>
                 </div>
 
@@ -244,6 +336,115 @@
                     <button type="submit" class="btn-primary" id="btnSaveEvento">Guardar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Detalles del Evento (Read Only) -->
+    <div id="detalleModal" class="modal-overlay">
+        <div class="modal-content glass-form modal-detalle">
+            <button id="closeDetalleModal" class="btn-icon close-floating"><svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg></button>
+
+            <!-- Hero Image Header -->
+            <div class="detalle-hero">
+                <div class="detalle-main-img-container">
+                    <img id="detImgPrincipal" src="" alt="Imagen principal del evento" style="display:none;" />
+                    <button id="btnDownloadImg" class="btn-download-img" title="Descargar Imagen" style="display:none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <div id="detNoImg" class="no-img-placeholder">
+                        <span>Sin Imagen</span>
+                    </div>
+                </div>
+                <!-- Contenedor dinámico de miniaturas (Flotando o debajo) -->
+                <div id="detMiniaturas" class="detalle-thumbnails"></div>
+            </div>
+
+            <!-- Body Content -->
+            <div class="detalle-body">
+                <div class="detalle-title-row">
+                    <h2 id="detTitulo">Título del Evento</h2>
+                    <div class="meta-chips">
+                        <span id="detEstado" class="chip">Activo</span>
+                        <span id="detModalidad" class="chip">Presencial</span>
+                    </div>
+                </div>
+
+                <div class="info-strip">
+                    <div class="info-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <div>
+                            <small>Fecha</small>
+                            <strong id="detFecha">--</strong>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <div>
+                            <small>Hora</small>
+                            <strong id="detHora">--</strong>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <div>
+                            <small>Lugar</small>
+                            <strong id="detLugar">--</strong>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <div>
+                            <small>Cupo</small>
+                            <strong id="detCupo">--</strong>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <div>
+                            <small>Creador</small>
+                            <strong id="detCreador">--</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detalle-desc-block">
+                    <p class="detalle-descripcion" id="detDescripcion"></p>
+                </div>
+
+                <div class="modal-actions-bottom">
+                    <button type="button" class="btn-primary" id="btnDetalleParticipantes">
+                        👥 Ver Participantes
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -83,7 +83,6 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 22px;
-    animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* New Login Specific Styles based on design */
@@ -99,7 +98,6 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .glass-form-login h2 {
@@ -454,7 +452,6 @@ body.light-theme .input-group input {
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
     z-index: 10;
     margin: 20px;
-    animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .login-info {

@@ -50,6 +50,17 @@
     flex-direction: column;
     gap: 15px;
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.nav-links::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-links a {
@@ -63,6 +74,7 @@
     padding: 12px 20px;
     border-radius: 12px;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .nav-links a .icon {
@@ -317,4 +329,87 @@ body.light-theme .btn-logout {
     height: 18px;
     color: #fff;
     stroke-width: 2;
+}
+
+/* Sidebar Submenu */
+.has-submenu-parent {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.has-submenu {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.submenu-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.sidebar-submenu.expanded {
+    max-height: 500px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 10px 0;
+}
+
+.has-submenu.expanded .submenu-arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-submenu li a {
+    padding: 8px 15px 8px 45px !important;
+    font-size: 0.85rem !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 6px;
+    margin: 2px 10px;
+}
+
+.sidebar-submenu li a:hover,
+.sidebar-submenu li a.active {
+    background: rgba(140, 82, 255, 0.1);
+    color: #fff !important;
+}
+
+.sidebar-submenu li a.active {
+    position: relative;
+}
+
+.sidebar-submenu li a.active::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: #d8b4fe;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #d8b4fe;
+}
+
+.submenu-group {
+    padding: 10px 15px 5px 25px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+    font-weight: 700;
 }
