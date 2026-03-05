@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmar Asistencia — SGEA</title>
+  <meta name="description" content="Confirma tu asistencia al evento académico." />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      font-family: 'Outfit', sans-serif;
+      color: #e2e8f0;
+      padding: 20px;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(16,185,129,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(99,102,241,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #10b981, #059669);
+      padding: 28px 32px;
+      text-align: center;
+    }
+
+    .card-header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .card-header p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .card-body { padding: 28px 32px; }
+
+    /* Loading state */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 0;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(16,185,129,0.2);
+      border-top-color: #10b981;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Event info */
+    .greeting {
+      font-size: 15px;
+      color: #94a3b8;
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    .greeting strong { color: #e2e8f0; }
+
+    .event-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .event-title {
+      color: #10b981;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      line-height: 1.3;
+    }
+
+    .event-detail {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .detail-label {
+      color: #64748b;
+      min-width: 80px;
+      font-size: 13px;
+    }
+
+    .detail-value { color: #cbd5e1; }
+
+    /* Buttons */
+    .question {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      flex: 1;
+      max-width: 200px;
+      padding: 13px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-confirm { background: #10b981; color: #fff; }
+    .btn-decline { background: #475569; color: #fff; }
+
+    /* Result states */
+    .result { text-align: center; padding: 12px 0 4px; }
+
+    .result-icon {
+      font-size: 52px;
+      margin-bottom: 12px;
+    }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .result-title.success { color: #10b981; }
+    .result-title.declined { color: #94a3b8; }
+    .result-title.already { color: #f59e0b; }
+    .result-title.error { color: #f87171; }
+
+    .result-text {
+      color: #94a3b8;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Footer */
+    .card-footer {
+      padding: 14px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+    }
+
+    .card-footer p {
+      color: #475569;
+      font-size: 11px;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="card-header">
+      <h1>📅 Confirmación de Asistencia</h1>
+      <p>Sistema de Gestión de Eventos Académicos</p>
+    </div>
+
+    <div class="card-body" id="cardBody">
+      <div class="loader">
+        <div class="spinner"></div>
+        <p style="color:#64748b;font-size:14px;margin:0;">Cargando información...</p>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <p>TecNM · Campus Cuautla · SGEA</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/confirmar-asistencia.js"></script>
+</body>
+</html>
