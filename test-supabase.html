@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Connection</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #44ff44;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diagnóstico de Conexión Supabase</h1>
+    
+    <div class="result">
+        <h3>Variables de Entorno:</h3>
+        <div id="envVars"></div>
+    </div>
+
+    <div class="result">
+        <h3>Test de Conexión:</h3>
+        <button onclick="testConnection()">Probar Conexión</button>
+        <button onclick="testAuth()">Probar Autenticación</button>
+        <div id="testResult"></div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './src/supabase.js';
+        
+        // Mostrar variables de entorno
+        document.getElementById('envVars').innerHTML = `
+            <p>VITE_SUPABASE_URL: <span class="${import.meta.env.VITE_SUPABASE_URL ? 'success' : 'error'}">${import.meta.env.VITE_SUPABASE_URL || 'NO DEFINIDO'}</span></p>
+            <p>VITE_SUPABASE_ANON_KEY: <span class="${import.meta.env.VITE_SUPABASE_ANON_KEY ? 'success' : 'error'}">${import.meta.env.VITE_SUPABASE_ANON_KEY ? '✓ DEFINIDO (longitud: ' + import.meta.env.VITE_SUPABASE_ANON_KEY.length + ')' : 'NO DEFINIDO'}</span></p>
+        `;
+
+        window.testConnection = async function() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<p>Probando conexión...</p>';
+            
+            try {
+                // Intentar una query simple
+                const { data, error } = await supabase.from('perfiles').select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error de Conexión:</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Conexión exitosa!</p>
+                        <p>Se pudo conectar a la tabla 'perfiles'</p>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de JavaScript:</p>
+                    <pre>${err.message}\n${err.stack}</pre>
+                `;
+            }
+        };
+
+        window.testAuth = async function() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<p>Probando autenticación...</p>';
+            
+            try {
+                // Intentar obtener la sesión actual
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error de Auth:</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Sistema de autenticación funciona!</p>
+                        <p>Sesión actual: ${data.session ? 'Existe' : 'No hay sesión activa'}</p>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de JavaScript:</p>
+                    <pre>${err.message}\n${err.stack}</pre>
+                `;
+            }
+        };
+
+        // Auto-ejecutar test de conexión
+        setTimeout(() => testConnection(), 1000);
+    </script>
+</body>
+</html>
