@@ -12,7 +12,8 @@ export default defineConfig({
                 participantes: resolve(__dirname, 'participantes.html'),
                 registro: resolve(__dirname, 'registro.html'),
                 usuarios: resolve(__dirname, 'usuarios.html'),
-                adminGeneral: resolve(__dirname, 'admin-general.html')
+                adminGeneral: resolve(__dirname, 'admin-general.html'),
+                confirmarAsistencia: resolve(__dirname, 'confirmar-asistencia.html')
             }
         }
     }

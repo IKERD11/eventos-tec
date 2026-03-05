@@ -77,6 +77,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ---- Logout ---- */
   document.getElementById("logoutBtn").addEventListener("click", logout);
 
+  /* ---- Personal tab ---- */
+  initPersonalTab();
+
   /* ---- Tabs ---- */
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
@@ -136,7 +139,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     .addEventListener("click", exportUsuariosCSV);
 
   /* ---- Initial Data Load ---- */
-  await Promise.all([loadStats(), loadEventos(), loadUsuarios()]);
+  await Promise.all([loadStats(), loadEventos(), loadUsuarios(), loadPersonal()]);
+  await loadEventosParaInvitar();
   renderCharts();
 });
 
@@ -672,4 +676,317 @@ function downloadCSV(rows, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// PERSONAL — Upload Excel, Preview, Import, Table, Invite
+// ============================================================
+let listaPersonal   = [];
+let previewRows     = [];
+let selectedPersonal = new Set();
+
+// Mapeo flexible de columnas del Excel
+const COL_MAP = {
+  nombre_completo:  ['nombre_completo','nombre','name','nombre completo'],
+  correo:           ['correo','email','correo_electronico','e-mail','mail'],
+  numero_control:   ['numero_control','no_control','num_control','control','número de control','no. control'],
+  academia:         ['academia','departamento','depto','area','área'],
+  rol_institucional:['rol_institucional','rol','puesto','cargo'],
+};
+
+function mapRow(rawRow) {
+  const keys  = Object.keys(rawRow).map(k => k.toLowerCase().trim());
+  const vals  = Object.values(rawRow);
+  const mapped = {};
+  for (const [field, aliases] of Object.entries(COL_MAP)) {
+    const idx = keys.findIndex(k => aliases.includes(k));
+    mapped[field] = idx !== -1 ? String(vals[idx] ?? '').trim() : '';
+  }
+  return mapped;
+}
+
+function initPersonalTab() {
+  const zone       = document.getElementById('uploadZone');
+  const fileInput  = document.getElementById('fileInputPersonal');
+  const uploadLink = document.getElementById('uploadLink');
+
+  uploadLink.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('click', e => { if (e.target !== uploadLink) fileInput.click(); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleExcelFile(e.target.files[0]); });
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleExcelFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('btnCancelImport').addEventListener('click', cancelPreview);
+  document.getElementById('btnConfirmImport').addEventListener('click', () => importarPersonal(previewRows));
+
+  document.getElementById('searchPersonal').addEventListener('input', applyPersonalFilter);
+  document.getElementById('filterAcademia').addEventListener('change', applyPersonalFilter);
+
+  document.getElementById('selectAllPersonal').addEventListener('change', e => {
+    const checks = document.querySelectorAll('.chk-personal');
+    checks.forEach(c => {
+      c.checked = e.target.checked;
+      const id  = c.dataset.id;
+      if (e.target.checked) selectedPersonal.add(id);
+      else selectedPersonal.delete(id);
+    });
+    updateSelectedCount();
+  });
+
+  document.getElementById('selectEventoInvite').addEventListener('change', updateEnviarBtn);
+  document.getElementById('btnEnviarInvitaciones').addEventListener('click', enviarInvitaciones);
+  document.getElementById('btnDescargarPlantilla').addEventListener('click', downloadPlantilla);
+  document.getElementById('btnExportPersonal').addEventListener('click', exportPersonalCSV);
+}
+
+// ---- Parsear Excel con SheetJS ----
+function handleExcelFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type: 'array' });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const raw  = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!raw.length) { alert('El archivo está vacío o no tiene datos.'); return; }
+
+      previewRows = raw.map(mapRow).filter(r => r.correo); // Requiere correo
+
+      const sinCorreo = raw.length - previewRows.length;
+      document.getElementById('previewCount').textContent   = previewRows.length;
+      document.getElementById('previewErrors').textContent  =
+        sinCorreo > 0 ? `⚠️ ${sinCorreo} fila(s) omitidas por no tener correo.` : '';
+
+      const tbody = document.getElementById('previewTbody');
+      tbody.innerHTML = previewRows.map(r => `
+        <tr>
+          <td style="font-weight:600">${r.nombre_completo || '<sin nombre>'}</td>
+          <td style="font-size:0.82rem;opacity:0.8">${r.correo}</td>
+          <td>${r.numero_control}</td>
+          <td>${r.academia}</td>
+          <td>${r.rol_institucional || 'Docente'}</td>
+        </tr>`).join('');
+
+      document.getElementById('previewSection').style.display = 'block';
+    } catch (err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  document.getElementById('fileInputPersonal').value = '';
+}
+
+function cancelPreview() {
+  previewRows = [];
+  document.getElementById('previewSection').style.display = 'none';
+}
+
+// ---- Importar a Supabase (upsert por correo) ----
+async function importarPersonal(rows) {
+  const btn = document.getElementById('btnConfirmImport');
+  btn.disabled = true;
+  btn.textContent = 'Importando...';
+
+  const payload = rows.map(r => ({
+    nombre_completo:   r.nombre_completo || '(Sin nombre)',
+    correo:            r.correo.toLowerCase(),
+    numero_control:    r.numero_control  || null,
+    academia:          r.academia        || null,
+    rol_institucional: r.rol_institucional || 'Docente',
+    activo: true,
+  }));
+
+  const { error } = await supabase
+    .from('personal')
+    .upsert(payload, { onConflict: 'correo' });
+
+  btn.disabled = false;
+  btn.textContent = 'Confirmar importación';
+
+  if (error) {
+    alert('Error al importar: ' + error.message);
+    return;
+  }
+
+  cancelPreview();
+  await loadPersonal();
+  await loadEventosParaInvitar();
+}
+
+// ---- Cargar personal de Supabase ----
+async function loadPersonal() {
+  const tbody = document.getElementById('personalTbody');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="7">Cargando personal...</td></tr>`;
+
+  const { data, error } = await supabase
+    .from('personal')
+    .select('*')
+    .order('academia', { ascending: true })
+    .order('nombre_completo', { ascending: true });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#f87171;padding:30px">Error: ${error.message}</td></tr>`;
+    return;
+  }
+
+  listaPersonal = data || [];
+
+  // Llenar filtro de academias
+  const academias = [...new Set(listaPersonal.map(p => p.academia).filter(Boolean))].sort();
+  const sel       = document.getElementById('filterAcademia');
+  const current   = sel.value;
+  sel.innerHTML   = '<option value="">Todas las academias</option>';
+  academias.forEach(a => {
+    const opt    = document.createElement('option');
+    opt.value    = a;
+    opt.textContent = a;
+    if (a === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  renderPersonal(listaPersonal);
+}
+
+function applyPersonalFilter() {
+  const q   = document.getElementById('searchPersonal').value.toLowerCase();
+  const ac  = document.getElementById('filterAcademia').value;
+  const filtered = listaPersonal.filter(p =>
+    (q === '' || (p.nombre_completo || '').toLowerCase().includes(q) || (p.correo || '').toLowerCase().includes(q)) &&
+    (ac === '' || p.academia === ac)
+  );
+  renderPersonal(filtered);
+}
+
+function renderPersonal(lista) {
+  const tbody = document.getElementById('personalTbody');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" class="icon-lg" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <p>No hay personal registrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = '';
+  lista.forEach(p => {
+    const activo = p.activo !== false;
+    const isSelected = selectedPersonal.has(p.id);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox" class="chk-personal" data-id="${p.id}" ${isSelected ? 'checked' : ''}></td>
+      <td style="font-weight:600">${p.nombre_completo}</td>
+      <td style="font-size:0.82rem;opacity:0.8">${p.correo}</td>
+      <td>${p.numero_control || '—'}</td>
+      <td><span class="badge badge-academia">${p.academia || '—'}</span></td>
+      <td style="font-size:0.82rem">${p.rol_institucional || 'Docente'}</td>
+      <td><span class="badge ${activo ? 'badge-enabled' : 'badge-disabled'}">${activo ? 'Activo' : 'Inactivo'}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.chk-personal').forEach(chk => {
+    chk.addEventListener('change', e => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) selectedPersonal.add(id);
+      else selectedPersonal.delete(id);
+      document.getElementById('selectAllPersonal').indeterminate =
+        selectedPersonal.size > 0 && selectedPersonal.size < listaPersonal.length;
+      updateSelectedCount();
+    });
+  });
+}
+
+function updateSelectedCount() {
+  const n = selectedPersonal.size;
+  document.getElementById('selectedCountText').textContent = `${n} persona(s) seleccionada(s)`;
+  updateEnviarBtn();
+}
+
+function updateEnviarBtn() {
+  const btn       = document.getElementById('btnEnviarInvitaciones');
+  const eventoId  = document.getElementById('selectEventoInvite').value;
+  btn.disabled    = selectedPersonal.size === 0 || !eventoId;
+}
+
+// ---- Cargar eventos activos para el selector de invitaciones ----
+async function loadEventosParaInvitar() {
+  const { data } = await supabase
+    .from('eventos')
+    .select('id, titulo, fecha')
+    .eq('estado', 'Activo')
+    .order('fecha', { ascending: true });
+
+  const sel = document.getElementById('selectEventoInvite');
+  sel.innerHTML = '<option value="">Selecciona el evento...</option>';
+  (data || []).forEach(ev => {
+    const opt = document.createElement('option');
+    opt.value = ev.id;
+    const f   = new Date(ev.fecha + 'T00:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    opt.textContent = `${ev.titulo} — ${f}`;
+    sel.appendChild(opt);
+  });
+}
+
+// ---- Enviar invitaciones (llama Edge Function) ----
+async function enviarInvitaciones() {
+  const eventoId    = document.getElementById('selectEventoInvite').value;
+  const personal_ids = [...selectedPersonal];
+  const btn         = document.getElementById('btnEnviarInvitaciones');
+  const resDiv      = document.getElementById('invitesResult');
+
+  if (!eventoId || !personal_ids.length) return;
+
+  btn.disabled     = true;
+  btn.textContent  = 'Enviando...';
+  resDiv.style.display = 'none';
+
+  const { data, error } = await supabase.functions.invoke('send-invites', {
+    body: { evento_id: eventoId, personal_ids },
+  });
+
+  btn.disabled    = false;
+  btn.innerHTML   = `<svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar correos`;
+  resDiv.style.display = 'block';
+
+  if (error) {
+    resDiv.className   = 'invites-result error';
+    resDiv.textContent = '❌ Error: ' + error.message;
+    return;
+  }
+
+  const r = data;
+  resDiv.className = r.errores > 0 && r.enviados === 0 ? 'invites-result error' : 'invites-result success';
+  resDiv.innerHTML = `✅ <strong>${r.enviados}</strong> correo(s) enviados` +
+    (r.omitidos ? ` · <strong>${r.omitidos}</strong> ya habían respondido` : '') +
+    (r.errores  ? ` · <strong>${r.errores}</strong> error(es)` : '');
+}
+
+// ---- Descargar plantilla Excel de ejemplo ----
+function downloadPlantilla() {
+  const wb  = XLSX.utils.book_new();
+  const ws  = XLSX.utils.aoa_to_sheet([
+    ['nombre_completo', 'correo', 'numero_control', 'academia', 'rol_institucional'],
+    ['Juan García López', 'juan.garcia@cuautla.tecnm.mx', '20010001', 'Sistemas Computacionales', 'Docente'],
+    ['María Pérez Ruiz', 'maria.perez@cuautla.tecnm.mx', '20010002', 'Gestión Empresarial', 'Coordinador'],
+  ]);
+  ws['!cols'] = [{wch:30},{wch:35},{wch:16},{wch:28},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Personal');
+  XLSX.writeFile(wb, 'plantilla_personal.xlsx');
+}
+
+// ---- Exportar personal como CSV ----
+function exportPersonalCSV() {
+  const rows = [['Nombre','Correo','No. Control','Academia','Rol','Estado']];
+  listaPersonal.forEach(p => rows.push([
+    p.nombre_completo || '',
+    p.correo,
+    p.numero_control  || '',
+    p.academia        || '',
+    p.rol_institucional || 'Docente',
+    p.activo !== false ? 'Activo' : 'Inactivo',
+  ]));
+  downloadCSV(rows, `personal_${new Date().toISOString().split('T')[0]}.csv`);
 }
