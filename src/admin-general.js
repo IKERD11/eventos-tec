@@ -230,8 +230,8 @@ function renderCharts() {
           {
             label: "Eventos",
             data: counts,
-            backgroundColor: "rgba(16,185,129,0.35)",
-            borderColor: "#10b981",
+            backgroundColor: "rgba(0, 230, 118, 0.4)",
+            borderColor: "#00e676",
             borderWidth: 1.5,
             borderRadius: 6,
           },
@@ -265,11 +265,11 @@ function renderCharts() {
           {
             data: Object.values(estadoCounts),
             backgroundColor: [
-              "rgba(16,185,129,0.7)",
+              "rgba(0, 230, 118, 0.7)",
               "rgba(100,116,139,0.7)",
               "rgba(239,68,68,0.7)",
             ],
-            borderColor: ["#10b981", "#64748b", "#ef4444"],
+            borderColor: ["#00e676", "#64748b", "#ef4444"],
             borderWidth: 1.5,
           },
         ],
