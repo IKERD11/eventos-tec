@@ -30,7 +30,13 @@ BEGIN
       created_at,
       updated_at,
       aud,
-      role
+      role,
+      -- GoTrue v2+ requiere estos campos como '' (no NULL)
+      confirmation_token,
+      recovery_token,
+      email_change_token_new,
+      email_change,
+      phone
     ) VALUES (
       new_user_id,
       '00000000-0000-0000-0000-000000000000',
@@ -42,7 +48,8 @@ BEGIN
       now(),
       now(),
       'authenticated',
-      'authenticated'
+      'authenticated',
+      '', '', '', '', ''
     );
 
     -- Insertar perfil (el trigger puede fallar por dominio, por eso lo hacemos manual)

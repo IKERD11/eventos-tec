@@ -261,6 +261,82 @@
 
         </div><!-- /tabEventos -->
 
+        <!-- ===== PANEL: PARTICIPANTES (slide-in lateral) ===== -->
+        <div class="participantes-overlay" id="participantesOverlay">
+            <div class="participantes-panel glass-panel">
+
+                <div class="participantes-header">
+                    <div>
+                        <h2 id="pnlEventoTitulo">Participantes</h2>
+                        <p id="pnlEventoFecha" style="font-size:0.82rem;opacity:0.6;margin:2px 0 0;"></p>
+                    </div>
+                    <button class="modal-close" id="pnlClose" title="Cerrar">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Acciones del panel -->
+                <div class="pnl-actions">
+                    <!-- Upload Excel -->
+                    <input type="file" id="pnlFileInput" accept=".xlsx,.xls,.csv" hidden>
+                    <button class="btn-primary" id="pnlBtnImport">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
+                        </svg>
+                        Importar Excel
+                    </button>
+                    <button class="btn-secondary" id="pnlBtnDownload">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Descargar lista
+                    </button>
+                    <span class="pnl-count" id="pnlCount">0 participantes</span>
+                </div>
+
+                <!-- Preview antes de importar -->
+                <div class="pnl-preview" id="pnlPreview" style="display:none;">
+                    <div class="preview-header">
+                        <h3>Vista previa — <span id="pnlPreviewCount">0</span> registros</h3>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn-secondary" id="pnlBtnCancelImport">Cancelar</button>
+                            <button class="btn-primary" id="pnlBtnConfirmImport">Importar</button>
+                        </div>
+                    </div>
+                    <div class="table-container" style="max-height:180px;overflow-y:auto;">
+                        <table class="data-table">
+                            <thead><tr><th>Nombre</th><th>Correo</th></tr></thead>
+                            <tbody id="pnlPreviewTbody"></tbody>
+                        </table>
+                    </div>
+                    <p id="pnlPreviewError" style="color:#f87171;font-size:0.82rem;margin:6px 0 0;"></p>
+                </div>
+
+                <!-- Tabla de participantes del evento -->
+                <div class="table-container pnl-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Estado</th>
+                                <th>Registro</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="pnlParticipantesTbody">
+                            <tr class="loading-row"><td colspan="6">Selecciona un evento...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div><!-- /participantesOverlay -->
+
         <!-- ===== TAB: USUARIOS ===== -->
         <div class="tab-panel" id="tabUsuarios">
 

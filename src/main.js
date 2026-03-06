@@ -1,4 +1,22 @@
 import { login, register, checkSession, resetPassword, updatePassword, onRecovery } from './auth';
+import { supabase } from './supabase.js';
+
+// Redirige según el rol del usuario
+async function redirectByRole() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/index.html'; return; }
+  const { data: profile } = await supabase
+    .from('perfiles')
+    .select('rol')
+    .eq('id', session.user.id)
+    .single();
+  const rol = profile?.rol;
+  if (rol === 'admin_general' || rol === 'admin') {
+    window.location.href = '/admin-general.html';
+  } else {
+    window.location.href = '/dashboard.html';
+  }
+}
 
 onRecovery(async () => {
   // Ocultar formulario de login normal y mostrar el de reinicio
@@ -18,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const session = await checkSession();
     // Solo redirigir si hay sesión y NO estamos en flujo de recuperación
     if (session && !isRecoveryFlow) {
-      window.location.href = '/dashboard.html';
+      await redirectByRole();
       return;
     }
   } catch (err) {
@@ -149,13 +167,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       if (isLoginMode) {
+
         const { error } = await login(email, password);
         if (error) throw error;
-        // Al loguearse correctamente:
-        window.location.href = '/dashboard.html';
+        // Redirigir según el rol del usuario
+        await redirectByRole();
+
       } else {
         const { data, error } = await register(email, password, nombre);
-        if (error) throw error;
+        if (error) {
+          console.error('Error de registro detallado:', error);
+          throw error;
+        }
 
         // Supabase a veces envía error si se trata de registrar alguien ya registrado. O devuelve identities vacío
         if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -168,18 +191,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         authError.className = 'success-msg';
         authError.textContent = 'Registro exitoso. Iniciando sesión automáticamente...';
 
-        setTimeout(() => {
-          window.location.href = '/dashboard.html';
+        setTimeout(async () => {
+          await redirectByRole();
         }, 1500);
       }
     } catch (error) {
       // Manejar errores de Supabase
-      let errorMsg = error.message;
+      console.error('Error completo:', error);
+      let errorMsg = error.message || 'Error desconocido';
+      
       if (errorMsg === "Invalid login credentials") {
-        errorMsg = "Credenciales incorrectas.";
+        errorMsg = "Credenciales incorrectas. Verifica tu email y contraseña.";
       } else if (errorMsg === "Email not confirmed") {
-        errorMsg = "Debes desactivar 'Confirm email' en tu panel de Supabase (Authentication -> Providers -> Email).";
+        errorMsg = "Debes confirmar tu email o desactivar 'Confirm email' en Supabase.";
+      } else if (errorMsg.includes("Unable to validate email address")) {
+        errorMsg = "Email no válido. Usa un correo @cuautla.tecnm.mx";
+      } else if (error.status === 500) {
+        errorMsg = "Error del servidor (500). Posibles causas: usuario no existe, trigger de BD falla, o RLS bloqueando acceso. Revisa la consola del navegador (F12).";
       }
+      
       showError(errorMsg);
       resetBtn();
     }
