@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Schema Supabase</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #44ff44;
+        }
+        .warning {
+            color: #ffaa44;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #8c52ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #7040dd;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificación del Schema de Supabase</h1>
+    
+    <div class="result">
+        <h3>Paso 1: Verificar Tablas</h3>
+        <button onclick="checkTables()">Verificar Tablas</button>
+        <div id="tablesResult"></div>
+    </div>
+
+    <div class="result">
+        <h3>Paso 2: Verificar Políticas RLS</h3>
+        <button onclick="checkPolicies()">Verificar Políticas</button>
+        <div id="policiesResult"></div>
+    </div>
+
+    <div class="result">
+        <h3>Paso 3: Intentar Crear Usuario de Prueba</h3>
+        <div>
+            <input type="email" id="testEmail" placeholder="test@cuautla.tecnm.mx" style="padding: 10px; width: 250px; margin: 5px;">
+            <input type="password" id="testPassword" placeholder="password123" style="padding: 10px; width: 150px; margin: 5px;">
+            <button onclick="testRegister()">Probar Registro</button>
+        </div>
+        <div id="registerResult"></div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './src/supabase.js';
+        
+        window.checkTables = async function() {
+            const resultDiv = document.getElementById('tablesResult');
+            resultDiv.innerHTML = '<p>Verificando tablas...</p>';
+            
+            const tables = ['perfiles', 'eventos', 'participantes'];
+            let html = '<h4>Resultados:</h4>';
+            
+            for (const table of tables) {
+                try {
+                    const { count, error } = await supabase
+                        .from(table)
+                        .select('*', { count: 'exact', head: true });
+                    
+                    if (error) {
+                        html += `<p class="error">❌ Tabla '${table}': ${error.message}</p>`;
+                        if (error.code) html += `<p class="error">   Código: ${error.code}</p>`;
+                    } else {
+                        html += `<p class="success">✅ Tabla '${table}': OK (${count || 0} registros)</p>`;
+                    }
+                } catch (err) {
+                    html += `<p class="error">❌ Error al verificar '${table}': ${err.message}</p>`;
+                }
+            }
+            
+            resultDiv.innerHTML = html;
+        };
+
+        window.checkPolicies = async function() {
+            const resultDiv = document.getElementById('policiesResult');
+            resultDiv.innerHTML = '<p>Verificando políticas RLS...</p>';
+            
+            try {
+                // Intentar leer perfiles sin estar autenticado
+                const { data, error } = await supabase
+                    .from('perfiles')
+                    .select('id')
+                    .limit(1);
+                
+                if (error && error.code === '42501') {
+                    resultDiv.innerHTML = `
+                        <p class="warning">⚠️ RLS está activo y bloqueando acceso sin autenticación</p>
+                        <p>Esto es CORRECTO para seguridad, pero necesitas datos iniciales.</p>
+                    `;
+                } else if (error) {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error: ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Se puede acceder a perfiles</p>
+                        <p>Registros encontrados: ${data?.length || 0}</p>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">❌ ${err.message}</p>`;
+            }
+        };
+
+        window.testRegister = async function() {
+            const resultDiv = document.getElementById('registerResult');
+            const email = document.getElementById('testEmail').value || 'test@cuautla.tecnm.mx';
+            const password = document.getElementById('testPassword').value || 'password123';
+            
+            resultDiv.innerHTML = '<p>Intentando registrar usuario...</p>';
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            nombre_completo: 'Usuario de Prueba'
+                        }
+                    }
+                });
+                
+                if (error) {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error de registro:</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                        <hr>
+                        <h4>Posibles soluciones:</h4>
+                        <ul>
+                            <li>Verifica que la tabla 'perfiles' existe en tu base de datos</li>
+                            <li>Verifica que el trigger 'handle_new_user' está creado</li>
+                            <li>Revisa los logs de Supabase (Dashboard -> Logs)</li>
+                            <li>Ejecuta el archivo supabase_schema.sql en tu base de datos</li>
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Registro exitoso!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p class="warning">Nota: Si el usuario ya existe, Supabase puede devolver éxito sin error explícito.</p>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de JavaScript:</p>
+                    <pre>${err.message}\n${err.stack}</pre>
+                `;
+            }
+        };
+
+        // Auto-ejecutar verificación de tablas
+        setTimeout(() => checkTables(), 500);
+    </script>
+</body>
+</html>
