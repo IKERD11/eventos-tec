@@ -80,6 +80,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ---- Personal tab ---- */
   initPersonalTab();
 
+  /* ---- Participantes panel ---- */
+  initParticipantesPanel();
+
   /* ---- Tabs ---- */
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
@@ -355,6 +358,9 @@ function renderEventos(eventos) {
             <td>${estadoBadge}</td>
             <td>
                 <div class="actions-cell">
+                    <button class="btn-icon-sm info btn-participantes" data-id="${ev.id}" data-titulo="${ev.titulo}" data-fecha="${ev.fecha}" title="Ver Participantes">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    </button>
                     <button class="btn-icon-sm success btn-edit" data-id="${ev.id}" title="Editar">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
@@ -367,6 +373,11 @@ function renderEventos(eventos) {
   });
 
   // Bind actions
+  tbody.querySelectorAll(".btn-participantes").forEach((btn) =>
+    btn.addEventListener("click", () =>
+      openParticipantesPanel(btn.dataset.id, btn.dataset.titulo, btn.dataset.fecha)
+    )
+  );
   tbody
     .querySelectorAll(".btn-edit")
     .forEach((btn) =>
@@ -989,4 +1000,213 @@ function exportPersonalCSV() {
     p.activo !== false ? 'Activo' : 'Inactivo',
   ]));
   downloadCSV(rows, `personal_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ============================================================
+// PANEL DE PARTICIPANTES POR EVENTO
+// ============================================================
+let pnlEventoId   = null;
+let pnlEventoData = null;  // { titulo, fecha }
+let pnlPreviewRows = [];
+let participantesDelEvento = [];
+
+// Inicializar listeners del panel (se llama una vez en DOMContentLoaded)
+function initParticipantesPanel() {
+  document.getElementById('pnlClose').addEventListener('click', closeParticipantesPanel);
+  document.getElementById('participantesOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeParticipantesPanel();
+  });
+  document.getElementById('pnlBtnImport').addEventListener('click', () =>
+    document.getElementById('pnlFileInput').click()
+  );
+  document.getElementById('pnlFileInput').addEventListener('change', (e) => {
+    if (e.target.files[0]) handlePnlExcel(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('pnlBtnCancelImport').addEventListener('click', cancelPnlImport);
+  document.getElementById('pnlBtnConfirmImport').addEventListener('click', confirmPnlImport);
+  document.getElementById('pnlBtnDownload').addEventListener('click', downloadParticipantesCSV);
+}
+
+function openParticipantesPanel(eventoId, titulo, fecha) {
+  pnlEventoId   = eventoId;
+  pnlEventoData = { titulo, fecha };
+  cancelPnlImport();
+
+  document.getElementById('pnlEventoTitulo').textContent = titulo;
+  const f = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  document.getElementById('pnlEventoFecha').textContent = f;
+
+  document.getElementById('participantesOverlay').classList.add('open');
+  loadParticipantesEvento();
+}
+
+function closeParticipantesPanel() {
+  document.getElementById('participantesOverlay').classList.remove('open');
+  pnlEventoId   = null;
+  pnlEventoData = null;
+  cancelPnlImport();
+}
+
+async function loadParticipantesEvento() {
+  if (!pnlEventoId) return;
+  const tbody = document.getElementById('pnlParticipantesTbody');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Cargando...</td></tr>`;
+
+  const { data, error } = await supabase
+    .from('participantes')
+    .select('*')
+    .eq('evento_id', pnlEventoId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:#f87171;text-align:center;padding:20px">Error: ${error.message}</td></tr>`;
+    return;
+  }
+
+  participantesDelEvento = data || [];
+  document.getElementById('pnlCount').textContent = `${participantesDelEvento.length} participante(s)`;
+
+  if (!participantesDelEvento.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" class="icon-lg" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <p>Sin participantes aún. Importa un Excel para agregar.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  participantesDelEvento.forEach((p, i) => {
+    const fecha = new Date(p.created_at).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    const estatusBadge = p.estatus === 'Confirmado'
+      ? `<span class="badge badge-activo">Confirmado</span>`
+      : `<span class="badge badge-disabled">En Espera</span>`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="opacity:0.5;font-size:0.8rem">${i + 1}</td>
+      <td style="font-weight:600">${p.nombre}</td>
+      <td style="font-size:0.82rem;opacity:0.8">${p.correo}</td>
+      <td>${estatusBadge}</td>
+      <td style="font-size:0.8rem;opacity:0.6">${fecha}</td>
+      <td>
+        <button class="btn-icon-sm danger btn-pnl-del" data-id="${p.id}" title="Eliminar participante">
+          <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.btn-pnl-del').forEach(btn =>
+    btn.addEventListener('click', () => deleteParticipante(btn.dataset.id))
+  );
+}
+
+async function deleteParticipante(id) {
+  if (!confirm('¿Eliminar este participante del evento?')) return;
+  const { error } = await supabase.from('participantes').delete().eq('id', id);
+  if (error) { alert('Error: ' + error.message); return; }
+  await loadParticipantesEvento();
+  loadStats();
+}
+
+// ---- Leer Excel del panel ----
+function handlePnlExcel(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb  = XLSX.read(e.target.result, { type: 'array' });
+      const ws  = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!raw.length) { alert('El archivo está vacío.'); return; }
+
+      // Mapeo flexible de columnas
+      const map = {
+        nombre: ['nombre_completo','nombre','name','nombre completo'],
+        correo: ['correo','email','correo_electronico','e-mail','mail'],
+      };
+
+      pnlPreviewRows = raw.map(row => {
+        const keys = Object.keys(row).map(k => k.toLowerCase().trim());
+        const vals = Object.values(row);
+        const get  = (aliases) => {
+          const idx = keys.findIndex(k => aliases.includes(k));
+          return idx !== -1 ? String(vals[idx] ?? '').trim() : '';
+        };
+        return { nombre: get(map.nombre), correo: get(map.correo) };
+      }).filter(r => r.correo);
+
+      const omitidos = raw.length - pnlPreviewRows.length;
+      document.getElementById('pnlPreviewCount').textContent = pnlPreviewRows.length;
+      document.getElementById('pnlPreviewError').textContent =
+        omitidos > 0 ? `⚠️ ${omitidos} fila(s) omitidas por no tener correo.` : '';
+
+      const tbody = document.getElementById('pnlPreviewTbody');
+      tbody.innerHTML = pnlPreviewRows.map(r => `
+        <tr>
+          <td style="font-weight:600">${r.nombre || '<sin nombre>'}</td>
+          <td style="font-size:0.82rem;opacity:0.8">${r.correo}</td>
+        </tr>`).join('');
+
+      document.getElementById('pnlPreview').style.display = 'block';
+    } catch (err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function cancelPnlImport() {
+  pnlPreviewRows = [];
+  document.getElementById('pnlPreview').style.display = 'none';
+}
+
+async function confirmPnlImport() {
+  if (!pnlEventoId || !pnlPreviewRows.length) return;
+  const btn = document.getElementById('pnlBtnConfirmImport');
+  btn.disabled    = true;
+  btn.textContent = 'Importando...';
+
+  const payload = pnlPreviewRows.map(r => ({
+    nombre:    r.nombre || '(Sin nombre)',
+    correo:    r.correo.toLowerCase(),
+    evento_id: pnlEventoId,
+    estatus:   'Confirmado',
+  }));
+
+  // Upsert por correo + evento_id para evitar duplicados
+  const { error } = await supabase
+    .from('participantes')
+    .upsert(payload, { onConflict: 'correo,evento_id', ignoreDuplicates: false });
+
+  btn.disabled    = false;
+  btn.textContent = 'Importar';
+
+  if (error) {
+    // Si el error es por falta de constraint unique, insertamos con insert
+    const { error: e2 } = await supabase.from('participantes').insert(payload);
+    if (e2) { alert('Error al importar: ' + e2.message); return; }
+  }
+
+  cancelPnlImport();
+  await loadParticipantesEvento();
+  loadStats();
+}
+
+// ---- Descargar participantes como CSV ----
+function downloadParticipantesCSV() {
+  if (!participantesDelEvento.length) {
+    alert('No hay participantes para descargar.');
+    return;
+  }
+  const rows = [['#','Nombre','Correo','Estado','Asistió','Registro']];
+  participantesDelEvento.forEach((p, i) => rows.push([
+    i + 1,
+    p.nombre,
+    p.correo,
+    p.estatus || 'Confirmado',
+    p.asistio ? 'Sí' : 'No',
+    new Date(p.created_at).toLocaleDateString('es-MX'),
+  ]));
+  const titulo = (pnlEventoData?.titulo || 'evento').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  downloadCSV(rows, `participantes_${titulo}_${new Date().toISOString().split('T')[0]}.csv`);
 }

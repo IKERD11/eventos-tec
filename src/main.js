@@ -1,4 +1,22 @@
 import { login, register, checkSession, resetPassword, updatePassword, onRecovery } from './auth';
+import { supabase } from './supabase.js';
+
+// Redirige según el rol del usuario
+async function redirectByRole() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/index.html'; return; }
+  const { data: profile } = await supabase
+    .from('perfiles')
+    .select('rol')
+    .eq('id', session.user.id)
+    .single();
+  const rol = profile?.rol;
+  if (rol === 'admin_general' || rol === 'admin') {
+    window.location.href = '/admin-general.html';
+  } else {
+    window.location.href = '/dashboard.html';
+  }
+}
 
 onRecovery(async () => {
   // Ocultar formulario de login normal y mostrar el de reinicio
@@ -18,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const session = await checkSession();
     // Solo redirigir si hay sesión y NO estamos en flujo de recuperación
     if (session && !isRecoveryFlow) {
-      window.location.href = '/dashboard.html';
+      await redirectByRole();
       return;
     }
   } catch (err) {
@@ -151,8 +169,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (isLoginMode) {
         const { error } = await login(email, password);
         if (error) throw error;
-        // Al loguearse correctamente:
-        window.location.href = '/dashboard.html';
+        // Redirigir según el rol del usuario
+        await redirectByRole();
       } else {
         const { data, error } = await register(email, password, nombre);
         if (error) throw error;
@@ -168,8 +186,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         authError.className = 'success-msg';
         authError.textContent = 'Registro exitoso. Iniciando sesión automáticamente...';
 
-        setTimeout(() => {
-          window.location.href = '/dashboard.html';
+        setTimeout(async () => {
+          await redirectByRole();
         }, 1500);
       }
     } catch (error) {
