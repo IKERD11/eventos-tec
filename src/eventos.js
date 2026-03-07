@@ -65,7 +65,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            listaEventos = data;
+
+            const now = new Date();
+            listaEventos = (data || []).map(ev => {
+                if (ev.estado === "Activo" && ev.fecha) {
+                    const baseHora = ev.hora ? ev.hora.substring(0, 5) : "00:00";
+                    const evDate = new Date(`${ev.fecha}T${baseHora}:00`);
+                    if (!isNaN(evDate.getTime()) && evDate < now) {
+                        ev.estado = "Inactivo";
+                    }
+                }
+                return ev;
+            });
+
             renderEventos(listaEventos);
         } catch (e) {
             console.error(e);

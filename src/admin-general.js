@@ -22,6 +22,7 @@ async function logout() {
 let sessionUser = null;
 let listaEventos = [];
 let listaUsuarios = [];
+window.calendarInstance = null;
 
 // ============================================================
 // INICIALIZACIÓN
@@ -111,6 +112,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     .getElementById("eventoForm")
     .addEventListener("submit", handleFormSubmit);
 
+  /* ---- Calendar Modal ---- */
+  const calModal = document.getElementById("calEventModal");
+  if (calModal) {
+    document.getElementById("closeCalModal").addEventListener("click", () => {
+      calModal.style.display = "none";
+    });
+    calModal.addEventListener("click", (e) => {
+      if (e.target === calModal) calModal.style.display = "none";
+    });
+  }
+
   /* ---- Search / Filters ---- */
   document
     .getElementById("searchEventos")
@@ -141,10 +153,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     .getElementById("btnExportUsuarios")
     .addEventListener("click", exportUsuariosCSV);
 
+  /* ---- Sidebar Submenu Eventos ---- */
+  const toggleSubmenuEventos = document.getElementById("toggleAdminSubmenuEventos");
+  const submenuEventos = document.getElementById("adminSubmenuEventos");
+
+  if (toggleSubmenuEventos && submenuEventos) {
+    toggleSubmenuEventos.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleSubmenuEventos.classList.toggle("expanded");
+      submenuEventos.classList.toggle("expanded");
+
+      // Also switch to the Eventos tab
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const tabPanels = document.querySelectorAll(".tab-panel");
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      tabPanels.forEach((p) => p.classList.remove("active"));
+
+      const targetBtn = document.getElementById("tabBtnEventos");
+      const targetPanel = document.getElementById("tabEventos");
+      if (targetBtn) targetBtn.classList.add("active");
+      if (targetPanel) targetPanel.classList.add("active");
+    });
+
+    // Submenu filtering items
+    const sidebarFilters = document.querySelectorAll(".admin-sidebar-filter");
+    sidebarFilters.forEach((filterLnk) => {
+      filterLnk.addEventListener("click", (e) => {
+        e.preventDefault();
+        sidebarFilters.forEach(f => f.classList.remove("active"));
+        e.currentTarget.classList.add("active");
+
+        // Ensure Eventos tab is active
+        const targetBtn = document.getElementById("tabBtnEventos");
+        const targetPanel = document.getElementById("tabEventos");
+        if (targetBtn && !targetBtn.classList.contains("active")) {
+          const tabBtns = document.querySelectorAll(".tab-btn");
+          const tabPanels = document.querySelectorAll(".tab-panel");
+          tabBtns.forEach((b) => b.classList.remove("active"));
+          tabPanels.forEach((p) => p.classList.remove("active"));
+          targetBtn.classList.add("active");
+          if (targetPanel) targetPanel.classList.add("active");
+        }
+
+        applyEventosFilter();
+      });
+    });
+  }
+
+  // Also bind the new filterTiempo
+  const filterTiempo = document.getElementById("filterTiempo");
+  if (filterTiempo) {
+    filterTiempo.addEventListener("change", applyEventosFilter);
+  }
+
   /* ---- Initial Data Load ---- */
+  initCalendar();
   await Promise.all([loadStats(), loadEventos(), loadUsuarios(), loadPersonal()]);
   await loadEventosParaInvitar();
   renderCharts();
+
+  // Custom Select initialization
+  initCustomSelects();
 });
 
 // ============================================================
@@ -306,8 +375,23 @@ async function loadEventos() {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    listaEventos = data || [];
+
+    // Convertir dinámicamente eventos pasados a "Inactivo"
+    const now = new Date();
+    listaEventos = (data || []).map(ev => {
+      // Solo sobreescribimos visualmente si estaba "Activo" y ya pasó
+      if (ev.estado === "Activo" && ev.fecha) {
+        const baseHora = ev.hora ? ev.hora.substring(0, 5) : "00:00";
+        const evDate = new Date(`${ev.fecha}T${baseHora}:00`);
+        if (!isNaN(evDate.getTime()) && evDate < now) {
+          ev.estado = "Inactivo";
+        }
+      }
+      return ev;
+    });
+
     renderEventos(listaEventos);
+    updateCalendarEvents();
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#f87171;padding:30px">Error al cargar eventos: ${e.message}</td></tr>`;
   }
@@ -318,13 +402,48 @@ function applyEventosFilter() {
   const estado = document.getElementById("filterEstado").value;
   const modalidad = document.getElementById("filterModalidad").value;
 
+  // New filters
+  const tiempoEl = document.getElementById("filterTiempo");
+  const tiempo = tiempoEl ? tiempoEl.value : "";
+
+  const activeCarreraEl = document.querySelector(".admin-sidebar-filter.active");
+  const carrera = activeCarreraEl ? activeCarreraEl.getAttribute("data-carrera") : "";
+
+  const now = new Date();
+
   const filtered = listaEventos.filter(
-    (ev) =>
-      (q === "" ||
-        ev.titulo.toLowerCase().includes(q) ||
-        (ev.lugar || "").toLowerCase().includes(q)) &&
-      (estado === "" || ev.estado === estado) &&
-      (modalidad === "" || ev.modalidad === modalidad),
+    (ev) => {
+      // time check
+      let timeMatch = true;
+      if (tiempo === "Proximos" || tiempo === "Pasados") {
+        if (!ev.fecha) {
+          timeMatch = false;
+        } else {
+          // Extraemos solo HH:MM por si ya viene con segundos desde la base de datos
+          const baseHora = ev.hora ? ev.hora.substring(0, 5) : "00:00";
+          const evDate = new Date(`${ev.fecha}T${baseHora}:00`);
+          if (isNaN(evDate.getTime())) {
+            timeMatch = false;
+          } else {
+            if (tiempo === "Proximos") timeMatch = evDate >= now;
+            else timeMatch = evDate < now;
+          }
+        }
+      }
+
+      // career check
+      const careerMatch = (!carrera || ev.clasificacion === carrera);
+
+      return (
+        (q === "" ||
+          ev.titulo.toLowerCase().includes(q) ||
+          (ev.lugar || "").toLowerCase().includes(q)) &&
+        (estado === "" || ev.estado === estado) &&
+        (modalidad === "" || ev.modalidad === modalidad) &&
+        timeMatch &&
+        careerMatch
+      );
+    }
   );
   renderEventos(filtered);
 }
@@ -360,6 +479,9 @@ function renderEventos(eventos) {
                     <button class="btn-icon view btn-participantes" data-id="${ev.id}" data-titulo="${ev.titulo}" data-fecha="${ev.fecha}" title="Ver Participantes">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
                     </button>
+                    <button class="btn-icon view btn-gallery" data-id="${ev.id}" title="Ver Fotos">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </button>
                     <button class="btn-icon edit btn-edit" data-id="${ev.id}" title="Editar Evento">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
@@ -377,6 +499,11 @@ function renderEventos(eventos) {
       openParticipantesPanel(btn.dataset.id, btn.dataset.titulo, btn.dataset.fecha)
     )
   );
+  tbody.querySelectorAll(".btn-gallery").forEach((btn) =>
+    btn.addEventListener("click", () =>
+      openGalleryModal(btn.dataset.id)
+    )
+  );
   tbody
     .querySelectorAll(".btn-edit")
     .forEach((btn) =>
@@ -387,6 +514,115 @@ function renderEventos(eventos) {
     .forEach((btn) =>
       btn.addEventListener("click", () => promptDelete(btn.dataset.id)),
     );
+
+  // Initialize dynamic selects
+  initCustomSelects();
+}
+
+// ============================================================
+// CALENDAR INIT AND UPDATE
+// ============================================================
+function initCalendar() {
+  const calendarEl = document.getElementById("calendar");
+  if (!calendarEl || typeof FullCalendar === "undefined") return;
+
+  window.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    locale: "es",
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek,timeGridDay",
+    },
+    buttonText: {
+      today: "Hoy",
+      month: "Mes",
+      week: "Semana",
+      day: "Día",
+      list: "Lista",
+    },
+    events: [],
+    selectable: true,
+    selectMirror: true,
+    select: function (info) {
+      // Abre modal de crear evento con fecha preseleccionada si es admin
+      openModal();
+      setTimeout(() => {
+        const start = info.start;
+        const yyyy = start.getFullYear();
+        const mm = String(start.getMonth() + 1).padStart(2, '0');
+        const dd = String(start.getDate()).padStart(2, '0');
+
+        document.getElementById("evFecha").value = `${yyyy}-${mm}-${dd}`;
+
+        if (!info.allDay) {
+          const hh = String(start.getHours()).padStart(2, '0');
+          const mins = String(start.getMinutes()).padStart(2, '0');
+          document.getElementById("evHora").value = `${hh}:${mins}`;
+        } else {
+          document.getElementById("evHora").value = "";
+        }
+      }, 50);
+      window.calendarInstance.unselect();
+    },
+    eventClick: function (info) {
+      openCalEventModal(info.event);
+    },
+  });
+
+  window.calendarInstance.render();
+}
+
+function updateCalendarEvents() {
+  if (!window.calendarInstance) return;
+
+  // Filtrar cancelados si se desea, o mostrarlos con otro color
+  const validEvents = listaEventos.filter(ev => ev.estado !== 'Cancelado');
+
+  const mappedEvents = validEvents.map((ev) => {
+    const baseHora = ev.hora ? ev.hora.substring(0, 5) : "00:00";
+    const startStr = `${ev.fecha}T${baseHora}:00`;
+    let endStr = startStr;
+    try {
+      endStr = new Date(new Date(startStr).getTime() + 2 * 60 * 60 * 1000).toISOString();
+    } catch (e) { }
+
+    return {
+      id: ev.id,
+      title: ev.titulo,
+      start: startStr,
+      end: endStr,
+      backgroundColor: ev.estado === "Activo" ? "var(--ag-accent)" : "grey",
+      borderColor: "transparent",
+      extendedProps: {
+        descripcion: ev.descripcion,
+        lugar: ev.lugar,
+        modalidad: ev.modalidad,
+        estado: ev.estado,
+        hora: baseHora,
+        fechaStr: ev.fecha,
+      },
+      // for light text contrast in dark bg if needed
+      textColor: ev.estado === "Activo" ? "#0f172a" : "#fff"
+    };
+  });
+
+  window.calendarInstance.removeAllEvents();
+  window.calendarInstance.addEventSource(mappedEvents);
+}
+
+function openCalEventModal(eventObj) {
+  const props = eventObj.extendedProps;
+  document.getElementById("mcTitle").textContent = eventObj.title;
+  document.getElementById("mcDate").textContent = `${props.fechaStr} a las ${props.hora} (${props.estado})`;
+  document.getElementById("mcDesc").textContent = props.descripcion;
+  document.getElementById("mcLugar").textContent = props.lugar || "Por definir";
+  document.getElementById("mcMod").textContent = props.modalidad;
+
+  document.getElementById("mcBtnPart").href = `/participantes.html?evento=${eventObj.id}`;
+  document.getElementById("mcBtnReg").href = `/registro.html?evento=${eventObj.id}`;
+
+  document.getElementById("calEventModal").style.display = "flex";
 }
 
 // ============================================================
@@ -488,6 +724,9 @@ function renderUsuarios(usuarios) {
       }
     });
   });
+
+  // Initialize dynamic selects
+  initCustomSelects();
 }
 
 // ============================================================
@@ -515,9 +754,15 @@ function openModal(id = null) {
       document.getElementById("evHora").value = ev.hora;
       document.getElementById("evLugar").value = ev.lugar || "";
       document.getElementById("evCupo").value = ev.cupo_maximo;
-      document.getElementById("evModalidad").value = ev.modalidad;
-      document.getElementById("evEstado").value = ev.estado;
+
+      updateFormCustomSelect('evModalidad', 'customSelectFormModalidad', ev.modalidad);
+      updateFormCustomSelect('evEstado', 'customSelectFormEstado', ev.estado);
+      updateFormCustomSelect('evClasificacion', 'customSelectFormClasificacion', ev.clasificacion || 'Institucional');
     }
+  } else {
+    updateFormCustomSelect('evModalidad', 'customSelectFormModalidad', 'Presencial');
+    updateFormCustomSelect('evEstado', 'customSelectFormEstado', 'Activo');
+    updateFormCustomSelect('evClasificacion', 'customSelectFormClasificacion', 'Institucional');
   }
   document.getElementById("modalOverlay").classList.add("open");
   document.getElementById("evTitulo").focus();
@@ -527,6 +772,60 @@ function closeModal() {
   document.getElementById("modalOverlay").classList.remove("open");
   editingId = null;
 }
+
+// --- Form Custom Select Helpers ---
+function updateFormCustomSelect(inputId, selectContainerId, value) {
+  document.getElementById(inputId).value = value;
+  const container = document.getElementById(selectContainerId);
+  if (!container) return;
+  container.dataset.value = value;
+  const textSpan = container.querySelector('.select-text');
+
+  // Find text corresponding to value
+  const items = container.querySelectorAll('.select-items div');
+  let foundText = value;
+  items.forEach(item => {
+    if (item.dataset.value === value) {
+      foundText = item.textContent;
+    }
+  });
+  if (textSpan) textSpan.textContent = foundText;
+}
+
+function setupFormCustomSelects() {
+  document.querySelectorAll('.form-custom-select').forEach(container => {
+    const selected = container.querySelector('.select-selected');
+    const items = container.querySelector('.select-items');
+    // Extract base ID to match hidden input
+    // Since we used customSelectFormModalidad and evModalidad, etc.
+    const hiddenInputId = container.id.replace('customSelectForm', 'ev');
+
+    selected.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Close others
+      document.querySelectorAll('.select-items').forEach(i => {
+        if (i !== items) i.classList.add('select-hide');
+      });
+      items.classList.toggle('select-hide');
+    });
+
+    items.querySelectorAll('div').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        updateFormCustomSelect(hiddenInputId, container.id, opt.dataset.value);
+        items.classList.add('select-hide');
+      });
+    });
+  });
+
+  // Close selects when clicking outside
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.select-items').forEach(i => i.classList.add('select-hide'));
+  });
+}
+
+// Call the setup after DOM load / modal setup
+setupFormCustomSelects();
 
 async function handleFormSubmit(e) {
   e.preventDefault();
@@ -538,6 +837,7 @@ async function handleFormSubmit(e) {
   const payload = {
     titulo: document.getElementById("evTitulo").value.trim(),
     descripcion: document.getElementById("evDescripcion").value.trim(),
+    clasificacion: document.getElementById("evClasificacion").value,
     fecha: document.getElementById("evFecha").value,
     hora: document.getElementById("evHora").value,
     lugar: document.getElementById("evLugar").value.trim(),
@@ -661,22 +961,22 @@ function downloadCSV(rows, filename) {
 // ============================================================
 // PERSONAL — Upload Excel, Preview, Import, Table, Invite
 // ============================================================
-let listaPersonal   = [];
-let previewRows     = [];
+let listaPersonal = [];
+let previewRows = [];
 let selectedPersonal = new Set();
 
 // Mapeo flexible de columnas del Excel
 const COL_MAP = {
-  nombre_completo:  ['nombre_completo','nombre','name','nombre completo'],
-  correo:           ['correo','email','correo_electronico','e-mail','mail'],
-  numero_control:   ['numero_control','no_control','num_control','control','número de control','no. control'],
-  academia:         ['academia','departamento','depto','area','área'],
-  rol_institucional:['rol_institucional','rol','puesto','cargo'],
+  nombre_completo: ['nombre_completo', 'nombre', 'name', 'nombre completo'],
+  correo: ['correo', 'email', 'correo_electronico', 'e-mail', 'mail'],
+  numero_control: ['numero_control', 'no_control', 'num_control', 'control', 'número de control', 'no. control'],
+  academia: ['academia', 'departamento', 'depto', 'area', 'área'],
+  rol_institucional: ['rol_institucional', 'rol', 'puesto', 'cargo'],
 };
 
 function mapRow(rawRow) {
-  const keys  = Object.keys(rawRow).map(k => k.toLowerCase().trim());
-  const vals  = Object.values(rawRow);
+  const keys = Object.keys(rawRow).map(k => k.toLowerCase().trim());
+  const vals = Object.values(rawRow);
   const mapped = {};
   for (const [field, aliases] of Object.entries(COL_MAP)) {
     const idx = keys.findIndex(k => aliases.includes(k));
@@ -686,8 +986,8 @@ function mapRow(rawRow) {
 }
 
 function initPersonalTab() {
-  const zone       = document.getElementById('uploadZone');
-  const fileInput  = document.getElementById('fileInputPersonal');
+  const zone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInputPersonal');
   const uploadLink = document.getElementById('uploadLink');
 
   uploadLink.addEventListener('click', () => fileInput.click());
@@ -712,7 +1012,7 @@ function initPersonalTab() {
     const checks = document.querySelectorAll('.chk-personal');
     checks.forEach(c => {
       c.checked = e.target.checked;
-      const id  = c.dataset.id;
+      const id = c.dataset.id;
       if (e.target.checked) selectedPersonal.add(id);
       else selectedPersonal.delete(id);
     });
@@ -730,17 +1030,17 @@ function handleExcelFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const wb   = XLSX.read(e.target.result, { type: 'array' });
-      const ws   = wb.Sheets[wb.SheetNames[0]];
-      const raw  = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
       if (!raw.length) { alert('El archivo está vacío o no tiene datos.'); return; }
 
       previewRows = raw.map(mapRow).filter(r => r.correo); // Requiere correo
 
       const sinCorreo = raw.length - previewRows.length;
-      document.getElementById('previewCount').textContent   = previewRows.length;
-      document.getElementById('previewErrors').textContent  =
+      document.getElementById('previewCount').textContent = previewRows.length;
+      document.getElementById('previewErrors').textContent =
         sinCorreo > 0 ? `⚠️ ${sinCorreo} fila(s) omitidas por no tener correo.` : '';
 
       const tbody = document.getElementById('previewTbody');
@@ -774,10 +1074,10 @@ async function importarPersonal(rows) {
   btn.textContent = 'Importando...';
 
   const payload = rows.map(r => ({
-    nombre_completo:   r.nombre_completo || '(Sin nombre)',
-    correo:            r.correo.toLowerCase(),
-    numero_control:    r.numero_control  || null,
-    academia:          r.academia        || null,
+    nombre_completo: r.nombre_completo || '(Sin nombre)',
+    correo: r.correo.toLowerCase(),
+    numero_control: r.numero_control || null,
+    academia: r.academia || null,
     rol_institucional: r.rol_institucional || 'Docente',
     activo: true,
   }));
@@ -797,6 +1097,145 @@ async function importarPersonal(rows) {
   cancelPreview();
   await loadPersonal();
   await loadEventosParaInvitar();
+}
+
+// ============================================================
+// CUSTOM DROPDOWNS LOGIC
+// ============================================================
+function initCustomSelects() {
+  document.querySelectorAll("select.select-filter").forEach((select) => {
+    // Prevent double initialization
+    if (select.closest(".custom-select-wrapper") || select.classList.contains("custom-select-initialized")) return;
+    select.classList.add("custom-select-initialized");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "custom-select-wrapper";
+    // Sync wrapper width
+    if (select.style.minWidth) {
+      wrapper.style.minWidth = select.style.minWidth;
+    }
+
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    select.style.display = "none";
+
+    const trigger = document.createElement("div");
+    trigger.className = "custom-select-trigger";
+    // If the select is disabled, lower its opacity and prevent actions
+    if (select.disabled) {
+      trigger.style.opacity = "0.5";
+      trigger.style.cursor = "not-allowed";
+    }
+
+    let initialText = select.options.length > 0 && select.selectedIndex >= 0
+      ? select.options[select.selectedIndex].text
+      : "Selecciona...";
+
+    trigger.innerHTML = `<span>${initialText}</span>
+    <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px;margin-left:8px;" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`;
+    wrapper.appendChild(trigger);
+
+    const optionsList = document.createElement("div");
+    optionsList.className = "custom-select-options";
+
+    Array.from(select.options).forEach((opt) => {
+      const optionItem = document.createElement("div");
+      optionItem.className = "custom-option";
+      optionItem.textContent = opt.text;
+      if (opt.selected) optionItem.classList.add("selected");
+
+      optionItem.addEventListener("click", () => {
+        if (select.disabled) return;
+        select.value = opt.value;
+        trigger.querySelector("span").textContent = opt.text;
+        optionsList.querySelectorAll(".custom-option").forEach((o) => o.classList.remove("selected"));
+        optionItem.classList.add("selected");
+        optionsList.classList.remove("open");
+        trigger.classList.remove("open");
+        wrapper.classList.remove("open");
+        wrapper.style.zIndex = "";
+
+        // Disparar evento native 'change'
+        select.dispatchEvent(new Event("change"));
+      });
+      optionsList.appendChild(optionItem);
+    });
+
+    wrapper.appendChild(optionsList);
+
+    trigger.addEventListener("click", (e) => {
+      if (select.disabled) return;
+      e.stopPropagation();
+
+      const isOpen = optionsList.classList.contains("open");
+
+      // Close all other selects first
+      document.querySelectorAll(".custom-select-options.open").forEach((list) => {
+        if (list !== optionsList) {
+          list.classList.remove("open");
+          list.previousElementSibling?.classList.remove("open");
+          const otherWrapper = list.closest('.custom-select-wrapper');
+          if (otherWrapper) {
+            otherWrapper.classList.remove("open");
+            otherWrapper.style.zIndex = "";
+            const row = otherWrapper.closest("tr");
+            if (row) row.style.zIndex = "";
+          }
+        }
+      });
+
+      // Toggle current
+      if (isOpen) {
+        optionsList.classList.remove("open");
+        trigger.classList.remove("open");
+        wrapper.classList.remove("open");
+        wrapper.style.zIndex = "";
+        const row = wrapper.closest("tr");
+        if (row) row.style.zIndex = "";
+      } else {
+        optionsList.classList.add("open");
+        trigger.classList.add("open");
+        wrapper.classList.add("open");
+        // Elevate z-index directly to overcome flex container dom ordering
+        wrapper.style.zIndex = "9999";
+        const row = wrapper.closest("tr");
+        if (row) {
+          row.style.position = "relative";
+          row.style.zIndex = "99";
+        }
+      }
+    });
+
+    // Si cambia el value desde JS, sincronizar el texto visual (útil para cuando se resetea por error)
+    select.addEventListener('change', () => {
+      const selectedOpt = select.options[select.selectedIndex];
+      if (selectedOpt) {
+        trigger.querySelector("span").textContent = selectedOpt.text;
+        optionsList.querySelectorAll(".custom-option").forEach(o => {
+          if (o.textContent === selectedOpt.text) o.classList.add('selected');
+          else o.classList.remove('selected');
+        });
+      }
+    });
+  });
+
+  // Cerrar menus al hacer click fuera
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest('.custom-select-wrapper')) {
+      document.querySelectorAll(".custom-select-options.open").forEach((list) => {
+        list.classList.remove("open");
+        if (list.previousElementSibling) list.previousElementSibling.classList.remove("open");
+
+        const wrapper = list.closest('.custom-select-wrapper');
+        if (wrapper) {
+          wrapper.classList.remove("open");
+          wrapper.style.zIndex = "";
+          const row = wrapper.closest("tr");
+          if (row) row.style.zIndex = "";
+        }
+      });
+    }
+  });
 }
 
 // ---- Cargar personal de Supabase ----
@@ -819,12 +1258,12 @@ async function loadPersonal() {
 
   // Llenar filtro de academias
   const academias = [...new Set(listaPersonal.map(p => p.academia).filter(Boolean))].sort();
-  const sel       = document.getElementById('filterAcademia');
-  const current   = sel.value;
-  sel.innerHTML   = '<option value="">Todas las academias</option>';
+  const sel = document.getElementById('filterAcademia');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todas las academias</option>';
   academias.forEach(a => {
-    const opt    = document.createElement('option');
-    opt.value    = a;
+    const opt = document.createElement('option');
+    opt.value = a;
     opt.textContent = a;
     if (a === current) opt.selected = true;
     sel.appendChild(opt);
@@ -834,8 +1273,8 @@ async function loadPersonal() {
 }
 
 function applyPersonalFilter() {
-  const q   = document.getElementById('searchPersonal').value.toLowerCase();
-  const ac  = document.getElementById('filterAcademia').value;
+  const q = document.getElementById('searchPersonal').value.toLowerCase();
+  const ac = document.getElementById('filterAcademia').value;
   const filtered = listaPersonal.filter(p =>
     (q === '' || (p.nombre_completo || '').toLowerCase().includes(q) || (p.correo || '').toLowerCase().includes(q)) &&
     (ac === '' || p.academia === ac)
@@ -886,9 +1325,9 @@ function updateSelectedCount() {
 }
 
 function updateEnviarBtn() {
-  const btn       = document.getElementById('btnEnviarInvitaciones');
-  const eventoId  = document.getElementById('selectEventoInvite').value;
-  btn.disabled    = selectedPersonal.size === 0 || !eventoId;
+  const btn = document.getElementById('btnEnviarInvitaciones');
+  const eventoId = document.getElementById('selectEventoInvite').value;
+  btn.disabled = selectedPersonal.size === 0 || !eventoId;
 }
 
 // ---- Cargar eventos activos para el selector de invitaciones ----
@@ -904,7 +1343,7 @@ async function loadEventosParaInvitar() {
   (data || []).forEach(ev => {
     const opt = document.createElement('option');
     opt.value = ev.id;
-    const f   = new Date(ev.fecha + 'T00:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    const f = new Date(ev.fecha + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
     opt.textContent = `${ev.titulo} — ${f}`;
     sel.appendChild(opt);
   });
@@ -912,27 +1351,27 @@ async function loadEventosParaInvitar() {
 
 // ---- Enviar invitaciones (llama Edge Function) ----
 async function enviarInvitaciones() {
-  const eventoId    = document.getElementById('selectEventoInvite').value;
+  const eventoId = document.getElementById('selectEventoInvite').value;
   const personal_ids = [...selectedPersonal];
-  const btn         = document.getElementById('btnEnviarInvitaciones');
-  const resDiv      = document.getElementById('invitesResult');
+  const btn = document.getElementById('btnEnviarInvitaciones');
+  const resDiv = document.getElementById('invitesResult');
 
   if (!eventoId || !personal_ids.length) return;
 
-  btn.disabled     = true;
-  btn.textContent  = 'Enviando...';
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
   resDiv.style.display = 'none';
 
   const { data, error } = await supabase.functions.invoke('send-invites', {
     body: { evento_id: eventoId, personal_ids },
   });
 
-  btn.disabled    = false;
-  btn.innerHTML   = `<svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar correos`;
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar correos`;
   resDiv.style.display = 'block';
 
   if (error) {
-    resDiv.className   = 'invites-result error';
+    resDiv.className = 'invites-result error';
     resDiv.textContent = '❌ Error: ' + error.message;
     return;
   }
@@ -941,30 +1380,30 @@ async function enviarInvitaciones() {
   resDiv.className = r.errores > 0 && r.enviados === 0 ? 'invites-result error' : 'invites-result success';
   resDiv.innerHTML = `✅ <strong>${r.enviados}</strong> correo(s) enviados` +
     (r.omitidos ? ` · <strong>${r.omitidos}</strong> ya habían respondido` : '') +
-    (r.errores  ? ` · <strong>${r.errores}</strong> error(es)` : '');
+    (r.errores ? ` · <strong>${r.errores}</strong> error(es)` : '');
 }
 
 // ---- Descargar plantilla Excel de ejemplo ----
 function downloadPlantilla() {
-  const wb  = XLSX.utils.book_new();
-  const ws  = XLSX.utils.aoa_to_sheet([
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
     ['nombre_completo', 'correo', 'numero_control', 'academia', 'rol_institucional'],
     ['Juan García López', 'juan.garcia@cuautla.tecnm.mx', '20010001', 'Sistemas Computacionales', 'Docente'],
     ['María Pérez Ruiz', 'maria.perez@cuautla.tecnm.mx', '20010002', 'Gestión Empresarial', 'Coordinador'],
   ]);
-  ws['!cols'] = [{wch:30},{wch:35},{wch:16},{wch:28},{wch:20}];
+  ws['!cols'] = [{ wch: 30 }, { wch: 35 }, { wch: 16 }, { wch: 28 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, ws, 'Personal');
   XLSX.writeFile(wb, 'plantilla_personal.xlsx');
 }
 
 // ---- Exportar personal como CSV ----
 function exportPersonalCSV() {
-  const rows = [['Nombre','Correo','No. Control','Academia','Rol','Estado']];
+  const rows = [['Nombre', 'Correo', 'No. Control', 'Academia', 'Rol', 'Estado']];
   listaPersonal.forEach(p => rows.push([
     p.nombre_completo || '',
     p.correo,
-    p.numero_control  || '',
-    p.academia        || '',
+    p.numero_control || '',
+    p.academia || '',
     p.rol_institucional || 'Docente',
     p.activo !== false ? 'Activo' : 'Inactivo',
   ]));
@@ -974,7 +1413,7 @@ function exportPersonalCSV() {
 // ============================================================
 // PANEL DE PARTICIPANTES POR EVENTO
 // ============================================================
-let pnlEventoId   = null;
+let pnlEventoId = null;
 let pnlEventoData = null;  // { titulo, fecha }
 let pnlPreviewRows = [];
 let participantesDelEvento = [];
@@ -998,12 +1437,12 @@ function initParticipantesPanel() {
 }
 
 function openParticipantesPanel(eventoId, titulo, fecha) {
-  pnlEventoId   = eventoId;
+  pnlEventoId = eventoId;
   pnlEventoData = { titulo, fecha };
   cancelPnlImport();
 
   document.getElementById('pnlEventoTitulo').textContent = titulo;
-  const f = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  const f = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
   document.getElementById('pnlEventoFecha').textContent = f;
 
   document.getElementById('participantesOverlay').classList.add('open');
@@ -1012,7 +1451,7 @@ function openParticipantesPanel(eventoId, titulo, fecha) {
 
 function closeParticipantesPanel() {
   document.getElementById('participantesOverlay').classList.remove('open');
-  pnlEventoId   = null;
+  pnlEventoId = null;
   pnlEventoData = null;
   cancelPnlImport();
 }
@@ -1045,7 +1484,7 @@ async function loadParticipantesEvento() {
 
   tbody.innerHTML = '';
   participantesDelEvento.forEach((p, i) => {
-    const fecha = new Date(p.created_at).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    const fecha = new Date(p.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
     const estatusBadge = p.estatus === 'Confirmado'
       ? `<span class="badge badge-activo">Confirmado</span>`
       : `<span class="badge badge-disabled">En Espera</span>`;
@@ -1082,22 +1521,22 @@ function handlePnlExcel(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const wb  = XLSX.read(e.target.result, { type: 'array' });
-      const ws  = wb.Sheets[wb.SheetNames[0]];
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
       const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
       if (!raw.length) { alert('El archivo está vacío.'); return; }
 
       // Mapeo flexible de columnas
       const map = {
-        nombre: ['nombre_completo','nombre','name','nombre completo'],
-        correo: ['correo','email','correo_electronico','e-mail','mail'],
+        nombre: ['nombre_completo', 'nombre', 'name', 'nombre completo'],
+        correo: ['correo', 'email', 'correo_electronico', 'e-mail', 'mail'],
       };
 
       pnlPreviewRows = raw.map(row => {
         const keys = Object.keys(row).map(k => k.toLowerCase().trim());
         const vals = Object.values(row);
-        const get  = (aliases) => {
+        const get = (aliases) => {
           const idx = keys.findIndex(k => aliases.includes(k));
           return idx !== -1 ? String(vals[idx] ?? '').trim() : '';
         };
@@ -1132,14 +1571,14 @@ function cancelPnlImport() {
 async function confirmPnlImport() {
   if (!pnlEventoId || !pnlPreviewRows.length) return;
   const btn = document.getElementById('pnlBtnConfirmImport');
-  btn.disabled    = true;
+  btn.disabled = true;
   btn.textContent = 'Importando...';
 
   const payload = pnlPreviewRows.map(r => ({
-    nombre:    r.nombre || '(Sin nombre)',
-    correo:    r.correo.toLowerCase(),
+    nombre: r.nombre || '(Sin nombre)',
+    correo: r.correo.toLowerCase(),
     evento_id: pnlEventoId,
-    estatus:   'Confirmado',
+    estatus: 'Confirmado',
   }));
 
   // Upsert por correo + evento_id para evitar duplicados
@@ -1147,7 +1586,7 @@ async function confirmPnlImport() {
     .from('participantes')
     .upsert(payload, { onConflict: 'correo,evento_id', ignoreDuplicates: false });
 
-  btn.disabled    = false;
+  btn.disabled = false;
   btn.textContent = 'Importar';
 
   if (error) {
@@ -1167,7 +1606,7 @@ function downloadParticipantesCSV() {
     alert('No hay participantes para descargar.');
     return;
   }
-  const rows = [['#','Nombre','Correo','Estado','Asistió','Registro']];
+  const rows = [['#', 'Nombre', 'Correo', 'Estado', 'Asistió', 'Registro']];
   participantesDelEvento.forEach((p, i) => rows.push([
     i + 1,
     p.nombre,
@@ -1178,4 +1617,83 @@ function downloadParticipantesCSV() {
   ]));
   const titulo = (pnlEventoData?.titulo || 'evento').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
   downloadCSV(rows, `participantes_${titulo}_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ============================================================
+// IMAGE GALLERY MODAL
+// ============================================================
+
+const galleryModal = document.getElementById("galleryModal");
+const galleryGrid = document.getElementById("galleryGrid");
+const btnCloseGallery = document.getElementById("btnCloseGallery");
+const galleryModalClose = document.getElementById("galleryModalClose");
+
+function closeGalleryModal() {
+  galleryModal.style.display = "none";
+  galleryGrid.innerHTML = "";
+}
+
+btnCloseGallery?.addEventListener("click", closeGalleryModal);
+galleryModalClose?.addEventListener("click", closeGalleryModal);
+
+window.openGalleryModal = function (id) {
+  const evento = listaEventos.find((e) => e.id === id);
+  if (!evento) return;
+
+  galleryGrid.innerHTML = "";
+
+  if (!evento.imagenes_url || evento.imagenes_url.length === 0) {
+    galleryGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: rgba(255,255,255,0.7); padding: 40px;">No hay imágenes cargadas para este evento.</div>`;
+  } else {
+    // Generate inner structure for gallery
+    evento.imagenes_url.forEach((url, i) => {
+      const card = document.createElement("div");
+      card.className = "gallery-item";
+
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = `Imagen ${i + 1}`;
+
+      const downloadBtn = document.createElement("button");
+      downloadBtn.className = "btn-gallery-download";
+      downloadBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg> Descargar
+      `;
+      downloadBtn.onclick = () => downloadImage(url, `evento_${evento.id}_img_${i + 1}`);
+
+      card.appendChild(img);
+      card.appendChild(downloadBtn);
+      galleryGrid.appendChild(card);
+    });
+  }
+
+  galleryModal.style.display = "flex";
+}
+
+// Download helper through blob so it forces download
+async function downloadImage(url, title) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Network response was not ok");
+    const blob = await res.blob();
+    const actUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = actUrl;
+
+    // Attempt extracting format from end of URL or defaulted jpg
+    const extension = url.split('.').pop().split('?')[0] || 'jpg';
+    a.download = `${title}.${extension}`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(actUrl);
+  } catch (error) {
+    console.error("Descarga fallida:", error);
+    alert("Hubo un error al descargar la imagen.");
+  }
 }

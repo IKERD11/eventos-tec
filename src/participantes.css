@@ -6,7 +6,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 25px 30px;
-    border-radius: 16px;
+    border-radius: 24px;
 }
 
 .banner-data h2 {
@@ -27,7 +27,7 @@
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     padding: 15px 25px;
-    border-radius: 12px;
+    border-radius: 16px;
 }
 
 .banner-stats .gauge span {
@@ -46,7 +46,7 @@
 
 /* Tabla de participantes */
 .table-container {
-    border-radius: 16px;
+    border-radius: 24px;
     overflow-x: auto;
     padding: 1px;
     /* for edge rendering */
@@ -195,7 +195,7 @@ body.light-theme .slider {
     margin-top: 5px;
     background: rgba(35, 35, 45, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
