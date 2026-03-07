@@ -6,7 +6,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 25px 30px;
-    border-radius: 16px;
+    border-radius: 24px;
 }
 
 .banner-data h2 {
@@ -27,7 +27,7 @@
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     padding: 15px 25px;
-    border-radius: 12px;
+    border-radius: 16px;
 }
 
 .banner-stats .gauge span {
@@ -46,7 +46,7 @@
 
 /* Tabla de participantes */
 .table-container {
-    border-radius: 16px;
+    border-radius: 24px;
     overflow-x: auto;
     padding: 1px;
     /* for edge rendering */
@@ -62,7 +62,7 @@
     background: rgba(255, 255, 255, 0.05);
     padding: 18px 25px;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -71,7 +71,7 @@
 
 .participants-table td {
     padding: 18px 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     font-size: 0.95rem;
 }
 
@@ -162,11 +162,11 @@ body.light-theme .banner-stats .gauge small {
 body.light-theme .participants-table th {
     background: rgba(0, 0, 0, 0.03);
     color: #555;
-    border-color: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.06);
 }
 
 body.light-theme .participants-table td {
-    border-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.03);
     color: #444;
 }
 
@@ -195,7 +195,7 @@ body.light-theme .slider {
     margin-top: 5px;
     background: rgba(35, 35, 45, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

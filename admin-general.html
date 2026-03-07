@@ -5,14 +5,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin General — SGEA</title>
-    <meta name="description" content="Panel de administración general del Sistema de Gestión de Eventos Académicos. Gestiona todos los eventos y usuarios del sistema." />
+    <meta name="description"
+        content="Panel de administración general del Sistema de Gestión de Eventos Académicos. Gestiona todos los eventos y usuarios del sistema." />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- FullCalendar CSS and Script -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <!-- SheetJS: parsear Excel en el cliente -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="/src/style.css">
-    <link rel="stylesheet" href="/src/admin-general.css">
+    <link rel="stylesheet" href="/src/style.css?v=2">
+    <link rel="stylesheet" href="/src/admin-general.css?v=2">
 </head>
 
 <body class="app-body">
@@ -28,36 +31,78 @@
             <!-- Tab links that switch view -->
             <li>
                 <a href="#" class="active tab-link" data-tab="tabResumen">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="14" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
                     </svg>
                     Resumen
                 </a>
             </li>
             <li>
-                <a href="#" class="tab-link" data-tab="tabEventos">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                <a href="#" class="tab-link" data-tab="tabCalendario">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
-                    Todos los Eventos
+                    Calendario
                 </a>
+            </li>
+            <li class="has-submenu-parent">
+                <a href="#" class="tab-link has-submenu" data-tab="tabEventos" id="toggleAdminSubmenuEventos">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        Eventos
+                    </div>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="submenu-arrow">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </a>
+                <ul class="sidebar-submenu" id="adminSubmenuEventos">
+                    <li><a href="#" class="admin-sidebar-filter active" data-carrera="">Todas las Carreras</a></li>
+                    <li><a href="#" class="admin-sidebar-filter"
+                            data-carrera="Ingeniería en Sistemas Computacionales">Ing. Sistemas Computacionales</a></li>
+                    <li><a href="#" class="admin-sidebar-filter" data-carrera="Ingeniería en Gestión Empresarial">Ing.
+                            Gestión Empresarial</a></li>
+                    <li><a href="#" class="admin-sidebar-filter" data-carrera="Ingeniería en Electrónica">Ing.
+                            Electrónica</a></li>
+                    <li><a href="#" class="admin-sidebar-filter" data-carrera="Ingeniería Industrial">Ing.
+                            Industrial</a></li>
+                    <li><a href="#" class="admin-sidebar-filter" data-carrera="Ingeniería Mecatrónica">Ing.
+                            Mecatrónica</a></li>
+                    <li><a href="#" class="admin-sidebar-filter" data-carrera="Ingeniería Civil">Ing. Civil</a></li>
+                    <li><a href="#" class="admin-sidebar-filter"
+                            data-carrera="Licenciatura en Contador Público">Contador Público</a></li>
+                </ul>
             </li>
             <li>
                 <a href="#" class="tab-link" data-tab="tabUsuarios">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
                     </svg>
                     Usuarios
                 </a>
             </li>
             <li>
                 <a href="#" class="tab-link" data-tab="tabPersonal">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                        <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
                     </svg>
                     Personal
                 </a>
@@ -70,8 +115,9 @@
                 <span class="user-name-small" id="userNameSidebar">Cargando...</span>
             </div>
             <button id="logoutBtn" class="btn-logout">
-                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
                 </svg>
                 Salir
             </button>
@@ -90,8 +136,9 @@
             <div class="header-actions">
                 <span id="headerUserName" style="font-size:0.9rem;opacity:0.7;">Cargando...</span>
                 <button id="themeToggle" class="btn-secondary" style="padding:8px 14px;">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
                     </svg>
                 </button>
             </div>
@@ -100,29 +147,49 @@
         <!-- Tab Navigation -->
         <div class="tab-nav glass-panel">
             <button class="tab-btn active" data-tab="tabResumen" id="tabBtnResumen">
-                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
                 </svg>
                 <span>Resumen</span>
             </button>
+            <button class="tab-btn" data-tab="tabCalendario" id="tabBtnCalendario">
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>Calendario</span>
+            </button>
             <button class="tab-btn" data-tab="tabEventos" id="tabBtnEventos">
-                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
                 </svg>
                 <span>Eventos</span>
                 <span class="tab-count" id="tabEvCount">0</span>
             </button>
             <button class="tab-btn" data-tab="tabUsuarios" id="tabBtnUsuarios">
-                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
                 </svg>
                 <span>Usuarios</span>
             </button>
             <button class="tab-btn" data-tab="tabPersonal" id="tabBtnPersonal">
-                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                    <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
                 </svg>
                 <span>Personal</span>
             </button>
@@ -134,8 +201,10 @@
             <div class="stats-grid">
                 <div class="stat-card glass-panel">
                     <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -145,8 +214,10 @@
                 </div>
                 <div class="stat-card glass-panel">
                     <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -156,9 +227,11 @@
                 </div>
                 <div class="stat-card glass-panel">
                     <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -168,8 +241,10 @@
                 </div>
                 <div class="stat-card glass-panel">
                     <div class="stat-icon amber">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -200,6 +275,16 @@
 
         </div><!-- /tabResumen -->
 
+        <!-- ===== TAB: CALENDARIO ===== -->
+        <div class="tab-panel" id="tabCalendario">
+            <div class="section-header">
+                <h2>Calendario de Eventos</h2>
+            </div>
+            <div class="glass-panel" style="padding: 20px;">
+                <div id="calendar"></div>
+            </div>
+        </div><!-- /tabCalendario -->
+
         <!-- ===== TAB: EVENTOS ===== -->
         <div class="tab-panel" id="tabEventos">
 
@@ -207,14 +292,17 @@
                 <h2>Todos los Eventos del Sistema</h2>
                 <div class="filter-row">
                     <div class="search-box">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input type="text" id="searchEventos" class="input-search" placeholder="Buscar evento...">
                     </div>
                     <select id="filterEstado" class="select-filter">
                         <option value="">Todos los estados</option>
                         <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
                         <option value="Finalizado">Finalizado</option>
                         <option value="Cancelado">Cancelado</option>
                     </select>
@@ -224,16 +312,25 @@
                         <option value="Virtual">Virtual</option>
                         <option value="Híbrido">Híbrido</option>
                     </select>
+                    <select id="filterTiempo" class="select-filter">
+                        <option value="">Todos los tiempos</option>
+                        <option value="Proximos">Próximos</option>
+                        <option value="Pasados">Pasados</option>
+                    </select>
                     <button id="btnExportEventos" class="btn-secondary">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         <span>Exportar CSV</span>
                     </button>
                     <button id="btnNuevoEvento" class="btn-primary">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                         <span>Nuevo Evento</span>
                     </button>
@@ -254,7 +351,9 @@
                         </tr>
                     </thead>
                     <tbody id="eventosTbody">
-                        <tr class="loading-row"><td colspan="7">Cargando eventos...</td></tr>
+                        <tr class="loading-row">
+                            <td colspan="7">Cargando eventos...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -271,8 +370,10 @@
                         <p id="pnlEventoFecha" style="font-size:0.82rem;opacity:0.6;margin:2px 0 0;"></p>
                     </div>
                     <button class="modal-close" id="pnlClose" title="Cerrar">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
                 </div>
@@ -282,15 +383,21 @@
                     <!-- Upload Excel -->
                     <input type="file" id="pnlFileInput" accept=".xlsx,.xls,.csv" hidden>
                     <button class="btn-primary" id="pnlBtnImport">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                            <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="12" y1="18" x2="12" y2="12" />
+                            <polyline points="9 15 12 12 15 15" />
                         </svg>
                         Importar Excel
                     </button>
                     <button class="btn-secondary" id="pnlBtnDownload">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         Descargar lista
                     </button>
@@ -308,7 +415,12 @@
                     </div>
                     <div class="table-container" style="max-height:180px;overflow-y:auto;">
                         <table class="data-table">
-                            <thead><tr><th>Nombre</th><th>Correo</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                </tr>
+                            </thead>
                             <tbody id="pnlPreviewTbody"></tbody>
                         </table>
                     </div>
@@ -329,7 +441,9 @@
                             </tr>
                         </thead>
                         <tbody id="pnlParticipantesTbody">
-                            <tr class="loading-row"><td colspan="6">Selecciona un evento...</td></tr>
+                            <tr class="loading-row">
+                                <td colspan="6">Selecciona un evento...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -344,8 +458,10 @@
                 <h2>Gestión de Usuarios</h2>
                 <div class="filter-row">
                     <div class="search-box">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input type="text" id="searchUsuarios" class="input-search" placeholder="Buscar usuario...">
                     </div>
@@ -356,9 +472,11 @@
                         <option value="admin">Admin</option>
                     </select>
                     <button id="btnExportUsuarios" class="btn-secondary">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         <span>Exportar CSV</span>
                     </button>
@@ -377,7 +495,9 @@
                         </tr>
                     </thead>
                     <tbody id="usuariosTbody">
-                        <tr class="loading-row"><td colspan="5">Cargando usuarios...</td></tr>
+                        <tr class="loading-row">
+                            <td colspan="5">Cargando usuarios...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -391,25 +511,32 @@
                 <h2>Gestión de Personal</h2>
                 <div class="filter-row">
                     <div class="search-box">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon-search" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
-                        <input type="text" id="searchPersonal" class="input-search" placeholder="Buscar por nombre o correo...">
+                        <input type="text" id="searchPersonal" class="input-search"
+                            placeholder="Buscar por nombre o correo...">
                     </div>
                     <select id="filterAcademia" class="select-filter">
                         <option value="">Todas las academias</option>
                     </select>
                     <button id="btnDescargarPlantilla" class="btn-secondary">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         <span>Plantilla Excel</span>
                     </button>
                     <button id="btnExportPersonal" class="btn-secondary">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         <span>Exportar CSV</span>
                     </button>
@@ -419,13 +546,15 @@
             <!-- Zona de carga de Excel -->
             <div class="upload-zone glass-panel" id="uploadZone">
                 <input type="file" id="fileInputPersonal" accept=".xlsx,.xls,.csv" hidden>
-                <svg viewBox="0 0 24 24" fill="none" class="upload-icon" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="12" y1="18" x2="12" y2="12"/>
-                    <polyline points="9 15 12 12 15 15"/>
+                <svg viewBox="0 0 24 24" fill="none" class="upload-icon" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <polyline points="9 15 12 12 15 15" />
                 </svg>
-                <p class="upload-text">Arrastra tu Excel aquí o <span class="upload-link" id="uploadLink">haz clic para seleccionar</span></p>
+                <p class="upload-text">Arrastra tu Excel aquí o <span class="upload-link" id="uploadLink">haz clic para
+                        seleccionar</span></p>
                 <p class="upload-hint">Formatos aceptados: .xlsx · .xls · .csv</p>
             </div>
 
@@ -460,7 +589,8 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width:36px;"><input type="checkbox" id="selectAllPersonal" title="Seleccionar todos"></th>
+                            <th style="width:36px;"><input type="checkbox" id="selectAllPersonal"
+                                    title="Seleccionar todos"></th>
                             <th>Nombre</th>
                             <th>Correo</th>
                             <th>No. Control</th>
@@ -470,7 +600,9 @@
                         </tr>
                     </thead>
                     <tbody id="personalTbody">
-                        <tr class="loading-row"><td colspan="7">Cargando personal...</td></tr>
+                        <tr class="loading-row">
+                            <td colspan="7">Cargando personal...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -484,8 +616,10 @@
                         <option value="">Selecciona el evento...</option>
                     </select>
                     <button id="btnEnviarInvitaciones" class="btn-primary" disabled>
-                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
                         </svg>
                         Enviar correos
                     </button>
@@ -503,8 +637,10 @@
             <div class="modal-header">
                 <h2 id="modalTitle">Nuevo Evento</h2>
                 <button class="modal-close" id="modalClose">
-                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                 </button>
             </div>
@@ -515,11 +651,13 @@
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="evTitulo">Título del Evento</label>
-                        <input type="text" id="evTitulo" class="form-input" placeholder="Ej: Conferencia de Innovación Tecnológica" required>
+                        <input type="text" id="evTitulo" class="form-input"
+                            placeholder="Ej: Conferencia de Innovación Tecnológica" required>
                     </div>
                     <div class="form-group full-width">
                         <label for="evDescripcion">Descripción</label>
-                        <textarea id="evDescripcion" class="form-textarea" placeholder="Describe el evento..." required></textarea>
+                        <textarea id="evDescripcion" class="form-textarea" placeholder="Describe el evento..."
+                            required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="evFecha">Fecha</label>
@@ -538,20 +676,66 @@
                         <input type="number" id="evCupo" class="form-input" placeholder="100" min="1" required>
                     </div>
                     <div class="form-group">
-                        <label for="evModalidad">Modalidad</label>
-                        <select id="evModalidad" class="form-select">
-                            <option value="Presencial">Presencial</option>
-                            <option value="Virtual">Virtual</option>
-                            <option value="Híbrido">Híbrido</option>
-                        </select>
+                        <label>Modalidad</label>
+                        <input type="hidden" id="evModalidad" value="Presencial">
+                        <div class="custom-select form-custom-select" id="customSelectFormModalidad"
+                            data-value="Presencial">
+                            <div class="select-selected">
+                                <span class="select-text">Presencial</span>
+                                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="Presencial">Presencial</div>
+                                <div data-value="Virtual">Virtual</div>
+                                <div data-value="Híbrido">Híbrido</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="evEstado">Estado</label>
-                        <select id="evEstado" class="form-select">
-                            <option value="Activo">Activo</option>
-                            <option value="Finalizado">Finalizado</option>
-                            <option value="Cancelado">Cancelado</option>
-                        </select>
+                        <label>Clasificación (Carrera)</label>
+                        <input type="hidden" id="evClasificacion" value="Institucional">
+                        <div class="custom-select form-custom-select" id="customSelectFormClasificacion"
+                            data-value="Institucional">
+                            <div class="select-selected">
+                                <span class="select-text">Institucional</span>
+                                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide" style="max-height: 180px; overflow-y: auto;">
+                                <div data-value="Institucional">Institucional</div>
+                                <div data-value="Ingeniería en Sistemas Computacionales">Ing. Sistemas Computacionales
+                                </div>
+                                <div data-value="Ingeniería en Gestión Empresarial">Ing. Gestión Empresarial</div>
+                                <div data-value="Ingeniería en Electrónica">Ing. Electrónica</div>
+                                <div data-value="Ingeniería Industrial">Ing. Industrial</div>
+                                <div data-value="Ingeniería Mecatrónica">Ing. Mecatrónica</div>
+                                <div data-value="Ingeniería Civil">Ing. Civil</div>
+                                <div data-value="Licenciatura en Contador Público">Contador Público</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <input type="hidden" id="evEstado" value="Activo">
+                        <div class="custom-select form-custom-select" id="customSelectFormEstado" data-value="Activo">
+                            <div class="select-selected">
+                                <span class="select-text">Activo</span>
+                                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="Activo">Activo</div>
+                                <div data-value="Finalizado">Finalizado</div>
+                                <div data-value="Cancelado">Cancelado</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -560,6 +744,53 @@
                     <button type="submit" id="btnSave" class="btn-primary">Crear evento</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL: GALLERY ===================== -->
+    <div class="modal-overlay" id="galleryModal" style="display: none; z-index: 200;">
+        <div class="modal-box" style="max-width: 900px; padding: 40px;">
+            <div class="modal-header">
+                <h2 id="galleryModalTitle">Galería del Evento</h2>
+                <button class="modal-close" id="galleryModalClose">
+                    <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div id="galleryGrid" class="gallery-grid">
+                <!-- Se inyectarán las imágenes dinámicamente aquí -->
+            </div>
+            <div class="modal-footer" style="margin-top: 20px;">
+                <button type="button" class="btn-secondary" id="btnCloseGallery">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Evento Calendario -->
+    <div id="calEventModal" class="cal-modal-overlay">
+        <div class="cal-modal-content">
+            <button id="closeCalModal"
+                style="position:absolute; right:20px; top:20px; background:none; border:none; color:var(--text-color); cursor:pointer;"><svg
+                    viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg></button>
+            <h2 id="mcTitle" style="margin-bottom:10px;">Título</h2>
+            <p id="mcDate" style="font-weight:600; color:var(--ag-accent); margin-bottom:15px;"></p>
+            <p id="mcDesc" style="margin-bottom:15px; opacity:0.8;"></p>
+            <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
+            <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
+            <hr style="border:0; border-top:1px solid rgba(128,128,128,0.2); margin: 20px 0;" />
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+                <a id="mcBtnPart" href="#" class="btn-secondary"
+                    style="text-decoration:none; text-align:center; flex:1;">Ver Participantes</a>
+                <a id="mcBtnReg" href="#" target="_blank" class="btn-primary"
+                    style="text-decoration:none; text-align:center; flex:1;">Registro Público</a>
+            </div>
         </div>
     </div>
 
@@ -580,6 +811,9 @@
                 if (btn) btn.classList.add('active');
                 if (panel) panel.classList.add('active');
                 link.classList.add('active');
+                if (tab === 'tabCalendario' && window.calendarInstance) {
+                    setTimeout(() => window.calendarInstance.render(), 10);
+                }
             });
         });
         // Tab nav buttons
@@ -593,8 +827,12 @@
                 if (panel) panel.classList.add('active');
                 const link = document.querySelector(`.tab-link[data-tab="${btn.dataset.tab}"]`);
                 if (link) link.classList.add('active');
+                if (btn.dataset.tab === 'tabCalendario' && window.calendarInstance) {
+                    setTimeout(() => window.calendarInstance.render(), 10);
+                }
             });
         });
     </script>
 </body>
+
 </html>
