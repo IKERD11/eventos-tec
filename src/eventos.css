@@ -254,6 +254,11 @@ body.light-theme .select-items div:hover {
     color: #fff;
 }
 
+.estado-Inactivo {
+    background: #fd8c00;
+    color: #fff;
+}
+
 .estado-Cancelado {
     background: #ff6b6b;
     color: #fff;
