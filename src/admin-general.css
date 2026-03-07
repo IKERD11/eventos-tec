@@ -1803,23 +1803,41 @@ body.light-theme .user-name-small {
 }
 
 /* Rounded corners for the calendar grid */
-.fc-scrollgrid {
+.fc-theme-standard .fc-scrollgrid {
+  border-collapse: separate !important;
   border-radius: 12px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.fc-col-header-cell:first-child {
+.fc-theme-standard th:first-child {
   border-top-left-radius: 12px;
 }
 
-.fc-col-header-cell:last-child {
+.fc-theme-standard th:last-child {
   border-top-right-radius: 12px;
 }
 
 .light-theme .fc-theme-standard td,
-.light-theme .fc-theme-standard th,
+.light-theme .fc-theme-standard th {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 .light-theme .fc-theme-standard .fc-scrollgrid {
   border-color: rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Hide Scrollbar */
+.fc-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.fc-scroller {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Calendar Header (Title) */
