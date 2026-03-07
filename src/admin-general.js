@@ -340,8 +340,7 @@ function renderEventos(eventos) {
 
   tbody.innerHTML = "";
   eventos.forEach((ev) => {
-    const estadoBadge = `<span class="badge badge-${ev.estado?.toLowerCase()}">${ev.estado}</span>`;
-    const modalBadge = `<span class="badge badge-${ev.modalidad?.toLowerCase().replace("í", "i")}">${ev.modalidad}</span>`;
+    const estadoClass = (ev.estado || '').toLowerCase();
     const fecha = new Date(ev.fecha + "T00:00:00").toLocaleDateString("es-MX", {
       day: "2-digit",
       month: "short",
@@ -350,21 +349,21 @@ function renderEventos(eventos) {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-            <td style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.titulo}">${ev.titulo}</td>
-            <td style="font-size:0.82rem;opacity:0.7;">${ev.perfiles?.nombre_completo || "—"}</td>
+            <td style="font-weight:600;" title="${ev.titulo}">${ev.titulo}</td>
+            <td style="font-size:0.85rem; color: #94a3b8;">${ev.perfiles?.nombre_completo || "—"}</td>
             <td>${fecha}</td>
-            <td style="font-size:0.82rem;">${ev.lugar || "—"}</td>
-            <td>${modalBadge}</td>
-            <td>${estadoBadge}</td>
+            <td>${ev.lugar || "—"}</td>
+            <td>${ev.modalidad}</td>
+            <td><span class="status-badge ${estadoClass}">${ev.estado}</span></td>
             <td>
-                <div class="actions-cell">
-                    <button class="btn-icon-sm info btn-participantes" data-id="${ev.id}" data-titulo="${ev.titulo}" data-fecha="${ev.fecha}" title="Ver Participantes">
+                <div class="action-buttons">
+                    <button class="btn-icon view btn-participantes" data-id="${ev.id}" data-titulo="${ev.titulo}" data-fecha="${ev.fecha}" title="Ver Participantes">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
                     </button>
-                    <button class="btn-icon-sm success btn-edit" data-id="${ev.id}" title="Editar">
+                    <button class="btn-icon edit btn-edit" data-id="${ev.id}" title="Editar Evento">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="btn-icon-sm danger btn-delete" data-id="${ev.id}" title="Eliminar">
+                    <button class="btn-icon delete btn-delete" data-id="${ev.id}" title="Eliminar Evento">
                         <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                     </button>
                 </div>
@@ -436,7 +435,7 @@ function renderUsuarios(usuarios) {
   const myId = sessionUser?.id;
 
   usuarios.forEach((u) => {
-    const rolBadge = `<span class="badge badge-${u.rol}">${u.rol}</span>`;
+    const rolClass = (u.rol || '').toLowerCase();
     const fecha = new Date(u.created_at).toLocaleDateString("es-MX", {
       day: "2-digit",
       month: "short",
@@ -444,20 +443,17 @@ function renderUsuarios(usuarios) {
     });
     const isMe = u.id === myId;
     const activo = u.activo !== false; // default true if null
+    const estadoClass = activo ? 'activo' : 'inactivo';
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
             <td style="font-weight:600;">${u.nombre_completo || "(Sin nombre)"}</td>
-            <td>${rolBadge}</td>
-            <td><span class="badge ${activo ? "badge-enabled" : "badge-disabled"}">${activo ? "Activo" : "Inactivo"}</span></td>
-            <td style="font-size:0.82rem;opacity:0.7;">${fecha}</td>
+            <td><span class="status-badge ${rolClass}">${u.rol}</span></td>
+            <td><span class="status-badge ${estadoClass}">${activo ? "Activo" : "Inactivo"}</span></td>
+            <td style="font-size:0.85rem; color: #94a3b8;">${fecha}</td>
             <td>
-                <div class="actions-cell">
-                    <label class="toggle-switch" title="${isMe ? "No puedes desactivar tu propia cuenta" : activo ? "Desactivar" : "Activar"}">
-                        <input type="checkbox" class="toggle-activo" data-id="${u.id}" ${activo ? "checked" : ""} ${isMe ? "disabled" : ""}>
-                        <span class="toggle-track"></span>
-                    </label>
-                    <select class="select-filter select-rol" data-id="${u.id}" style="padding:5px 10px;font-size:0.8rem;" ${isMe ? "disabled" : ""}>
+                <div class="action-buttons">
+                    <select class="select-filter select-rol" data-id="${u.id}" style="min-width: 110px;" ${isMe ? "disabled" : ""}>
                         <option value="docente"   ${u.rol === "docente" ? "selected" : ""}>Docente</option>
                         <option value="academia"  ${u.rol === "academia" ? "selected" : ""}>Academia</option>
                         <option value="admin"     ${u.rol === "admin" ? "selected" : ""}>Admin</option>
@@ -465,34 +461,6 @@ function renderUsuarios(usuarios) {
                 </div>
             </td>`;
     tbody.appendChild(tr);
-  });
-
-  // Toggle activo
-  tbody.querySelectorAll(".toggle-activo").forEach((toggle) => {
-    toggle.addEventListener("change", async (e) => {
-      const id = e.target.dataset.id;
-      const activo = e.target.checked;
-      const { error } = await supabase
-        .from("perfiles")
-        .update({ activo })
-        .eq("id", id);
-      if (error) {
-        alert("Error al actualizar: " + error.message);
-        e.target.checked = !activo;
-      } else {
-        const u = listaUsuarios.find((x) => x.id === id);
-        if (u) u.activo = activo;
-        // update badge
-        const row = e.target.closest("tr");
-        if (row) {
-          const badge = row.querySelector(".badge-enabled, .badge-disabled");
-          if (badge) {
-            badge.className = `badge ${activo ? "badge-enabled" : "badge-disabled"}`;
-            badge.textContent = activo ? "Activo" : "Inactivo";
-          }
-        }
-      }
-    });
   });
 
   // Change rol
@@ -516,6 +484,7 @@ function renderUsuarios(usuarios) {
       } else {
         const u = listaUsuarios.find((x) => x.id === id);
         if (u) u.rol = rol;
+        applyUsuariosFilter(); // Re-render to apply new badge class
       }
     });
   });

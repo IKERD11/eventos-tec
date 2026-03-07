@@ -515,8 +515,9 @@
 }
 
 .table-container {
-  border-radius: 16px;
-  overflow: hidden;
+  border-radius: 12px;
+  padding: 10px;
+  overflow: hidden; /* Ensures inner elements respect the border radius */
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(20px);
@@ -526,45 +527,131 @@
 
 .data-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 0.95rem;
+  border-collapse: collapse;
+  color: #e2e8f0;
+  font-size: 0.9rem;
 }
 
-.data-table thead {
-  background: rgba(0, 230, 118, 0.1);
+.data-table th,
+.data-table td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .data-table thead th {
-  padding: 16px 20px;
-  text-align: left;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--ag-accent);
-  white-space: nowrap;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.5); /* Slightly different background for header */
   border-bottom: 2px solid var(--ag-accent-border);
 }
 
 .data-table tbody tr {
-  transition: all 0.25s ease;
+  transition: background-color 0.2s ease;
 }
 
 .data-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 4px 0 0 var(--ag-accent);
+  background-color: var(--ag-accent-dim);
 }
 
-.data-table td {
-  padding: 16px 20px;
-  vertical-align: middle;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  color: #f8fafc;
-}
-
+.data-table tbody tr:last-child th,
 .data-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.data-table .loading-row td {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.data-table .status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.status-badge.activo {
+  background-color: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+}
+
+.status-badge.finalizado {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.status-badge.cancelado {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.status-badge.docente {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.status-badge.academia {
+  background-color: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.status-badge.admin {
+  background-color: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+}
+
+.status-badge.inactivo {
+    background-color: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+
+.data-table .action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons .btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.action-buttons .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--glass-border);
+}
+
+.action-buttons .btn-icon .icon {
+    width: 16px;
+    height: 16px;
+    color: #cbd5e1;
+}
+
+.action-buttons .btn-icon.delete:hover .icon {
+    color: var(--ag-danger);
+}
+
+.action-buttons .btn-icon.edit:hover .icon {
+    color: var(--ag-info);
+}
+
+.action-buttons .btn-icon.view:hover .icon {
+    color: var(--ag-accent);
 }
 
 /* =========================================
