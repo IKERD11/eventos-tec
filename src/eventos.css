@@ -42,83 +42,6 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* ---- Custom Select Dropdowns ---- */
-.custom-select {
-    position: relative;
-    width: 200px;
-    font-size: 0.95rem;
-}
-
-.select-selected {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--glass-border);
-    color: var(--text-color);
-    padding: 10px 15px;
-    border-radius: 30px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-    transition: all 0.3s ease;
-}
-
-.select-selected:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.select-items {
-    position: absolute;
-    background: rgba(30, 30, 40, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    z-index: 99;
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-.select-hide {
-    display: none;
-}
-
-.select-items div {
-    color: rgba(255, 255, 255, 0.9);
-    padding: 12px 15px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.2s;
-}
-
-.select-items div:hover {
-    background-color: rgba(140, 82, 255, 0.3);
-    color: #fff;
-}
-
-body.light-theme .select-selected {
-    background: rgba(0, 0, 0, 0.05);
-    color: #333;
-    border-color: rgba(0, 0, 0, 0.1);
-}
-
-body.light-theme .select-items {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(0, 0, 0, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-body.light-theme .select-items div {
-    color: #333;
-}
-
-body.light-theme .select-items div:hover {
-    background-color: rgba(140, 82, 255, 0.1);
-    color: var(--primary-color);
-}
 
 .btn-primary {
     background: linear-gradient(135deg, #8c52ff 0%, #ba68c8 100%);
@@ -142,39 +65,7 @@ body.light-theme .select-items div:hover {
     box-shadow: 0 6px 20px rgba(140, 82, 255, 0.7);
 }
 
-/* Modifiers for custom selects inside forms */
-.form-custom-select {
-    width: 100%;
-}
 
-.form-custom-select .select-selected {
-    padding: 14px 18px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    font-size: 1rem;
-    font-weight: normal;
-}
-
-.form-custom-select .select-selected:hover {
-    background: rgba(20, 20, 30, 0.4);
-    border-color: rgba(140, 82, 255, 0.6);
-}
-
-.form-select-items {
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-/* Scrollbar for long dropdowns */
-.form-select-items::-webkit-scrollbar {
-    width: 6px;
-}
-
-.form-select-items::-webkit-scrollbar-thumb {
-    background: rgba(140, 82, 255, 0.4);
-    border-radius: 10px;
-}
 
 
 .btn-primary .icon {
@@ -351,9 +242,9 @@ body.light-theme .select-items div:hover {
 }
 
 .modal-content {
-    background: linear-gradient(145deg, rgba(30, 30, 40, 0.8) 0%, rgba(20, 20, 25, 0.95) 100%);
-    border: 1px solid rgba(140, 82, 255, 0.3);
-    /* Purple tinted border */
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    /* Slate border matching admin panel */
     border-radius: 24px;
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(16px);
@@ -389,7 +280,7 @@ body.light-theme .select-items div:hover {
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-    background: rgba(140, 82, 255, 0.4);
+    background: rgba(0, 230, 118, 0.4);
     border-radius: 10px;
 }
 
@@ -408,7 +299,7 @@ body.light-theme .select-items div:hover {
     font-weight: 700;
     margin: 0;
     color: #fff;
-    text-shadow: 0 0 15px rgba(140, 82, 255, 0.3);
+    text-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
     letter-spacing: -0.5px;
 }
 
@@ -462,8 +353,9 @@ body.light-theme .select-items div:hover {
 .form-row textarea {
     width: 100%;
     padding: 14px 18px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.5);
+    /* Slate bg */
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
     color: #fff;
     font-size: 1rem;
@@ -488,13 +380,14 @@ body.light-theme .select-items div:hover {
 .form-row input:focus,
 .form-row select:focus,
 .form-row textarea:focus {
-    background: rgba(20, 20, 30, 0.4);
-    border-color: rgba(140, 82, 255, 0.6);
-    box-shadow: 0 0 0 4px rgba(140, 82, 255, 0.15);
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(0, 230, 118, 0.6);
+    box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.15);
 }
 
 .form-row select option {
-    background: #1e1e28;
+    background: #0f172a;
+    /* Slate dark */
     color: #fff;
     padding: 10px;
 }
@@ -518,8 +411,8 @@ body.light-theme .select-items div:hover {
 }
 
 .file-upload-wrapper:hover {
-    background: rgba(140, 82, 255, 0.05);
-    border-color: rgba(140, 82, 255, 0.4);
+    background: rgba(0, 230, 118, 0.05);
+    border-color: rgba(0, 230, 118, 0.4);
 }
 
 .file-upload-wrapper input[type="file"] {
@@ -544,7 +437,7 @@ body.light-theme .select-items div:hover {
 .file-upload-content .icon {
     width: 32px;
     height: 32px;
-    color: rgba(140, 82, 255, 0.8);
+    color: rgba(0, 230, 118, 0.8);
 }
 
 .file-upload-text {
