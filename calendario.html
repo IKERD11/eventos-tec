@@ -150,42 +150,469 @@
             filter: brightness(1.1);
         }
 
-        /* Modal custom info para eventos */
+        /* ============================================================
+           MODAL REDESIGN — Evento Detalle (Moderno)
+           ============================================================ */
         .cal-modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 16px;
         }
 
         .cal-modal-content {
-            background: linear-gradient(145deg, rgba(28, 28, 42, 0.95), rgba(15, 15, 25, 0.98));
+            background: #0f0f1a;
             width: 100%;
-            max-width: 480px;
+            max-width: 460px;
             border-radius: 24px;
-            padding: 32px;
-            border: 1px solid rgba(140, 82, 255, 0.25);
+            overflow: hidden;
+            border: 1px solid rgba(140, 82, 255, 0.2);
             position: relative;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
-            animation: calModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            animation: calModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes calModalIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(28px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
+        /* ── Hero Image ────────────────────────────── */
+        .cem-hero {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: var(--cem-grad, linear-gradient(135deg, #1a0533 0%, #0d1b42 60%, #07121e 100%));
+            flex-shrink: 0;
+        }
+
+        .cem-hero-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 6s ease;
+            opacity: 0;
+            animation: cemImgIn 0.6s 0.1s ease forwards;
+        }
+
+        @keyframes cemImgIn {
+            from {
+                opacity: 0;
+                transform: scale(1.05);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Animated glow for no-image state */
+        .cem-hero-glow {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #1e003d 0%, #0a1640 40%, #001428 80%, #110320 100%);
+            animation: cemGlowShift 8s ease infinite alternate;
+        }
+
+        @keyframes cemGlowShift {
+            0% {
+                filter: hue-rotate(0deg) brightness(1);
+            }
+
+            50% {
+                filter: hue-rotate(20deg) brightness(1.15);
+            }
+
+            100% {
+                filter: hue-rotate(-10deg) brightness(0.95);
+            }
+        }
+
+        /* Orb particles in no-image state */
+        .cem-hero-glow::before,
+        .cem-hero-glow::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.45;
+        }
+
+        .cem-hero-glow::before {
+            width: 200px;
+            height: 200px;
+            background: #8c52ff;
+            top: -40px;
+            left: -30px;
+        }
+
+        .cem-hero-glow::after {
+            width: 160px;
+            height: 160px;
+            background: #00e5ff;
+            bottom: -30px;
+            right: -20px;
+        }
+
+        /* Scrim over hero (always) */
+        .cem-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top,
+                    rgba(10, 8, 22, 0.92) 0%,
+                    rgba(10, 8, 22, 0.35) 55%,
+                    rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .cem-hero-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 18px 20px;
+            z-index: 2;
+        }
+
+        .cem-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .cem-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            line-height: 1;
+        }
+
+        .cem-badge-mod {
+            background: rgba(0, 229, 255, 0.15);
+            color: #00e5ff;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+        }
+
+        .cem-badge-carrera {
+            background: rgba(140, 82, 255, 0.2);
+            color: #c4a0ff;
+            border: 1px solid rgba(140, 82, 255, 0.4);
+        }
+
+        .cem-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.25;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+            margin: 0;
+        }
+
+        /* Photo counter badge */
+        .cem-photo-count {
+            position: absolute;
+            top: 12px;
+            right: 48px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: none;
+            z-index: 3;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* ── Body ────────────────────────────────────── */
+        .cem-body {
+            padding: 20px 20px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .cem-desc {
+            font-size: 0.9rem;
+            color: rgba(226, 232, 240, 0.8);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Stats pills row */
+        .cem-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .cem-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 14px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .cem-stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(140, 82, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #a678ff;
+        }
+
+        .cem-stat-icon .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .cem-stat-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .cem-stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .cem-stat-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cem-stat-full {
+            flex-basis: 100%;
+        }
+
+        /* ── Actions ──────────────────────────────────── */
+        .cem-actions {
+            padding: 12px 20px 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .cem-btn-secondary {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            font-family: inherit;
+            text-decoration: none;
+            border: 1px solid rgba(140, 82, 255, 0.35);
+            background: rgba(140, 82, 255, 0.12);
+            color: #c4a0ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cem-btn-secondary:hover {
+            background: rgba(140, 82, 255, 0.25);
+            border-color: rgba(140, 82, 255, 0.6);
+            color: #d8b4fe;
+            transform: translateY(-1px);
+        }
+
+        .cem-btn-neon {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            font-family: inherit;
+            border: none;
+            background: var(--primary-color, #8c52ff);
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(140, 82, 255, 0.35);
+        }
+
+        .cem-btn-neon:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(140, 82, 255, 0.5);
+        }
+
+        /* URL Share Panel */
+        .cem-url-panel {
+            display: none;
+            padding: 0 20px 20px;
+        }
+
+        .cem-url-inner {
+            background: rgba(140, 82, 255, 0.08);
+            border: 1px solid rgba(140, 82, 255, 0.25);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .cem-url-label {
+            font-size: 0.78rem;
+            color: rgba(226, 232, 240, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .cem-url-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .cem-url-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: #fff;
+            font-size: 0.82rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .cem-url-copy {
+            background: var(--primary-color, #8c52ff);
+            border: none;
+            border-radius: 8px;
+            padding: 9px 16px;
+            color: #000;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 800;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .cem-copy-msg {
+            display: none;
+            color: #51cf66;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Close button */
+        .cem-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .cem-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .cem-close .icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Light theme overrides */
         .light-theme .cal-modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: rgba(140, 82, 255, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            background: #f8f6ff;
+            border-color: rgba(140, 82, 255, 0.3);
+        }
+
+        .light-theme .cem-desc {
+            color: rgba(30, 20, 60, 0.75);
+        }
+
+        .light-theme .cem-stat {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .light-theme .cem-stat-label {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        .light-theme .cem-stat-value {
+            color: #1e143c;
+        }
+
+        .light-theme .cem-btn-secondary {
+            color: #6a36cf;
+            background: rgba(140, 82, 255, 0.08);
+        }
+
+        .light-theme .cem-url-inner {
+            background: rgba(140, 82, 255, 0.06);
+        }
+
+        .light-theme .cem-url-input {
+            background: rgba(0, 0, 0, 0.06);
+            color: #1e143c;
+        }
+
+        .light-theme .cem-url-label {
+            color: rgba(30, 20, 60, 0.6);
         }
     </style>
 </head>
@@ -273,43 +700,131 @@
         </div>
     </div>
 
-    <!-- Modal Detalle Evento -->
+    <!-- Modal Detalle Evento (Redesigned) -->
     <div id="calEventModal" class="cal-modal-overlay">
         <div class="cal-modal-content">
-            <button id="closeCalModal"
-                style="position:absolute; right:20px; top:20px; background:none; border:none; color:var(--text-color); cursor:pointer;"><svg
-                    viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                    stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- Close Button -->
+            <button id="closeCalModal" class="cem-close" title="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg></button>
-            <h2 id="mcTitle" style="margin-bottom:10px;">Título</h2>
-            <p id="mcDate" style="font-weight:600; color:var(--accent-color); margin-bottom:15px;"></p>
-            <p id="mcDesc" style="margin-bottom:15px; opacity:0.8;"></p>
-            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
-                <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
-                <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
-                <p><strong>Carrera/Clasificación:</strong> <span id="mcClasif" style="color:var(--primary-color);"></span></p>
-            </div>
-            <hr style="border:0; border-top:1px solid rgba(128,128,128,0.2); margin: 20px 0;" />
-            <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:12px;">
-                <a id="mcBtnPart" href="#" class="btn-secondary"
-                    style="text-decoration:none; text-align:center; flex:1;">👥 Ver Participantes</a>
-                <button id="mcBtnReg" class="btn-primary" style="flex:1; cursor:pointer;">🔗 Registro Público</button>
-            </div>
-            <!-- URL pública (se muestra al hacer clic en Registro Público) -->
-            <div id="mcUrlPanel" style="display:none; background:rgba(140,82,255,0.1); border:1px solid rgba(140,82,255,0.3); border-radius:12px; padding:12px; margin-top:4px;">
-                <p style="font-size:0.8rem; opacity:0.7; margin-bottom:8px;">Comparte este enlace con los participantes:</p>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <input id="mcPublicUrl" type="text" readonly
-                        style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:8px 12px; color:var(--text-color); font-size:0.85rem; font-family:inherit; outline:none;" />
-                    <button id="mcBtnCopyUrl" title="Copiar enlace"
-                        style="background:var(--primary-color); border:none; border-radius:8px; padding:8px 12px; color:#fff; cursor:pointer; font-size:0.85rem; font-weight:600; transition:all 0.2s; white-space:nowrap;">
-                        Copiar
-                    </button>
+                </svg>
+            </button>
+
+            <!-- Hero (image OR animated gradient) -->
+            <div class="cem-hero">
+                <!-- Animated gradient fallback (shown when no image) -->
+                <div class="cem-hero-glow" id="cemHeroGlow"></div>
+                <!-- Photo (shown when image exists) -->
+                <img id="cemHeroImg" class="cem-hero-img" src="" alt="" style="display:none;">
+                <!-- Photo count badge -->
+                <div class="cem-photo-count" id="cemPhotoCount">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        style="width:12px;height:12px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                    <span id="cemPhotoCountText"></span>
                 </div>
-                <p id="mcCopyMsg" style="display:none; color:var(--success-color); font-size:0.8rem; margin-top:6px; text-align:center;">✓ ¡Enlace copiado!</p>
+                <!-- Overlay content -->
+                <div class="cem-hero-content">
+                    <div class="cem-badges">
+                        <span id="mcDate" style="display:none;"></span>
+                        <span class="cem-badge cem-badge-mod" id="mcMod">Presencial</span>
+                        <span class="cem-badge cem-badge-carrera" id="mcClasif">Institucional</span>
+                    </div>
+                    <h2 id="mcTitle" class="cem-title">Título del Evento</h2>
+                </div>
             </div>
+
+            <!-- Body -->
+            <div class="cem-body">
+                <p id="mcDesc" class="cem-desc">Descripción detallada del evento.</p>
+
+                <div class="cem-stats">
+                    <div class="cem-stat">
+                        <div class="cem-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="cem-stat-info">
+                            <span class="cem-stat-label">Fecha</span>
+                            <strong id="mcDateDisplay" class="cem-stat-value">--/--/----</strong>
+                        </div>
+                    </div>
+
+                    <div class="cem-stat">
+                        <div class="cem-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="cem-stat-info">
+                            <span class="cem-stat-label">Hora</span>
+                            <strong id="mcTimeDisplay" class="cem-stat-value">--:--</strong>
+                        </div>
+                    </div>
+
+                    <div class="cem-stat cem-stat-full">
+                        <div class="cem-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="cem-stat-info">
+                            <span class="cem-stat-label">Lugar</span>
+                            <strong id="mcLugar" class="cem-stat-value">Auditorio</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="cem-actions">
+                <a id="mcBtnPart" href="#" class="cem-btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="icon" style="width:17px;height:17px;">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Ver Participantes
+                </a>
+                <button id="mcBtnReg" class="cem-btn-neon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="icon" style="width:17px;height:17px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Registro Público
+                </button>
+            </div>
+
+            <!-- URL Share Panel -->
+            <div class="cem-url-panel" id="mcUrlPanel">
+                <div class="cem-url-inner">
+                    <p class="cem-url-label">Comparte este enlace con los participantes:</p>
+                    <div class="cem-url-row">
+                        <input id="mcPublicUrl" type="text" readonly class="cem-url-input" />
+                        <button id="mcBtnCopyUrl" class="cem-url-copy">Copiar</button>
+                    </div>
+                    <p id="mcCopyMsg" class="cem-copy-msg">✓ ¡Enlace copiado!</p>
+                </div>
+            </div>
+
         </div>
     </div>
 

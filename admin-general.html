@@ -769,25 +769,87 @@
         </div>
     </div>
 
-    <!-- Modal Detalle Evento Calendario -->
+    <!-- Modal Detalle Evento Calendario (Unified Neon) -->
     <div id="calEventModal" class="cal-modal-overlay">
-        <div class="cal-modal-content">
-            <button id="closeCalModal"
-                style="position:absolute; right:20px; top:20px; background:none; border:none; color:var(--text-color); cursor:pointer;"><svg
-                    viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                    stroke-linecap="round" stroke-linejoin="round">
+        <div class="cal-modal-content event-detail-modal-unified">
+            <!-- Close Button (Absolute to overlay) -->
+            <button id="closeCalModal" class="modal-close-unified" title="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg></button>
-            <h2 id="mcTitle" style="margin-bottom:10px;">Título</h2>
-            <p id="mcDate" style="font-weight:600; color:var(--ag-accent); margin-bottom:15px;"></p>
-            <p id="mcDesc" style="margin-bottom:15px; opacity:0.8;"></p>
-            <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
-            <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
-            <hr style="border:0; border-top:1px solid rgba(128,128,128,0.2); margin: 20px 0;" />
-            <div style="display:flex; justify-content:center; margin-top: 15px;">
-                <a id="mcBtnPart" href="#" class="btn-secondary"
-                    style="text-decoration:none; text-align:center; width: 100%;">Ver Participantes</a>
+                </svg>
+            </button>
+
+            <!-- Hero Banner -->
+            <div class="ed-hero-banner">
+                <!-- Decorative subtle pattern/gradient -->
+                <div class="ed-hero-glow"></div>
+                <div class="ed-hero-content">
+                    <div class="ed-hero-badges">
+                        <span id="mcDate" style="display:none;"></span> <!-- Hidden for JS compat -->
+                        <span class="ed-badge ed-badge-status" id="mcMod">Presencial</span>
+                    </div>
+                    <h2 id="mcTitle" class="ed-hero-title">Título del Evento</h2>
+                </div>
+            </div>
+
+            <!-- Unified Body Box -->
+            <div class="ed-body-unified">
+                <p id="mcDesc" class="ed-desc">Descripción detallada del evento irá aquí.</p>
+
+                <div class="ed-stats-grid">
+                    <div class="ed-stat-box">
+                        <div class="ed-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="ed-stat-info">
+                            <span class="ed-stat-label">Fecha</span>
+                            <strong id="mcDateDisplay" class="ed-stat-value">--/--/----</strong>
+                        </div>
+                    </div>
+
+                    <div class="ed-stat-box">
+                        <div class="ed-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="ed-stat-info">
+                            <span class="ed-stat-label">Hora</span>
+                            <strong id="mcTimeDisplay" class="ed-stat-value">--:--</strong>
+                        </div>
+                    </div>
+
+                    <div class="ed-stat-box ed-stat-full">
+                        <div class="ed-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="ed-stat-info">
+                            <span class="ed-stat-label">Lugar</span>
+                            <strong id="mcLugar" class="ed-stat-value">Auditorio</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Dock -->
+            <div class="ed-action-dock">
+                <a id="mcBtnPart" href="#" class="ed-btn-neon">
+                    Ver Participantes
+                </a>
             </div>
         </div>
     </div>

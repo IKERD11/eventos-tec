@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         estado: ev.estado,
                         hora: ev.hora,
                         fechaStr: ev.fecha,
-                        clasificacion: ev.clasificacion
+                        clasificacion: ev.clasificacion,
+                        imagenes_url: ev.imagenes_url
                     }
                 };
             });
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Botón "Registro Público" - muestra/oculta panel URL
     document.getElementById('mcBtnReg').addEventListener('click', () => {
         const panel = document.getElementById('mcUrlPanel');
-        const isVisible = panel.style.display !== 'none';
+        const isVisible = getComputedStyle(panel).display !== 'none';
         panel.style.display = isVisible ? 'none' : 'block';
         document.getElementById('mcCopyMsg').style.display = 'none';
     });
@@ -149,10 +150,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     function showEventModal(eventObj) {
         const props = eventObj.extendedProps;
         document.getElementById('mcTitle').textContent = eventObj.title;
-        document.getElementById('mcDate').textContent = `${props.fechaStr} a las ${props.hora} (${props.estado})`;
-        document.getElementById('mcDesc').textContent = props.descripcion;
-        document.getElementById('mcLugar').textContent = props.lugar || 'Por definir';
-        document.getElementById('mcMod').textContent = props.modalidad;
+
+        // Hero Image logic — show photo for ANY event that has images
+        const heroImg = document.getElementById('cemHeroImg');
+        const heroGlow = document.getElementById('cemHeroGlow');
+        const photoCountEl = document.getElementById('cemPhotoCount');
+        const photoCountText = document.getElementById('cemPhotoCountText');
+
+        if (props.imagenes_url && props.imagenes_url.length > 0) {
+            // Show the photo, hide the animated glow
+            heroImg.src = props.imagenes_url[0];
+            heroImg.alt = eventObj.title;
+            heroImg.style.display = 'block';
+            // Reset animation so it plays on each open
+            heroImg.style.animation = 'none';
+            heroImg.offsetHeight; // reflow
+            heroImg.style.animation = '';
+            heroGlow.style.display = 'none';
+
+            // Show count badge if multiple photos
+            if (props.imagenes_url.length > 1) {
+                photoCountText.textContent = `${props.imagenes_url.length} fotos`;
+                photoCountEl.style.display = 'flex';
+            } else {
+                photoCountEl.style.display = 'none';
+            }
+        } else {
+            // No image — show animated gradient glow
+            heroImg.style.display = 'none';
+            heroImg.src = '';
+            heroGlow.style.display = 'block';
+            photoCountEl.style.display = 'none';
+        }
+
+        // Stat fields
+        document.getElementById("mcDateDisplay").textContent = props.fechaStr || "--";
+        document.getElementById("mcTimeDisplay").textContent = props.hora || "--";
+
+        // Badges
+        document.getElementById("mcMod").textContent = props.modalidad || "--";
+
+        document.getElementById("mcDesc").textContent = props.descripcion || "Sin descripción";
+        document.getElementById("mcLugar").textContent = props.lugar || "Por definir";
 
         // Clasificación/Carrera
         const clasifMap = {
@@ -176,7 +215,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('mcPublicUrl').value = publicUrl;
 
         // Resetear panel URL
-        document.getElementById('mcUrlPanel').style.display = 'none';
+        const urlPanel = document.getElementById('mcUrlPanel');
+        urlPanel.style.display = 'none';
         document.getElementById('mcCopyMsg').style.display = 'none';
         const copyBtn = document.getElementById('mcBtnCopyUrl');
         copyBtn.textContent = 'Copiar';

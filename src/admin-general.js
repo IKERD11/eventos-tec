@@ -601,6 +601,7 @@ function updateCalendarEvents() {
         estado: ev.estado,
         hora: baseHora,
         fechaStr: ev.fecha,
+        imagenes_url: ev.imagenes_url // pass photos
       },
       // for light text contrast in dark bg if needed
       textColor: ev.estado === "Activo" ? "#0f172a" : "#fff"
@@ -614,10 +615,32 @@ function updateCalendarEvents() {
 function openCalEventModal(eventObj) {
   const props = eventObj.extendedProps;
   document.getElementById("mcTitle").textContent = eventObj.title;
-  document.getElementById("mcDate").textContent = `${props.fechaStr} a las ${props.hora} (${props.estado})`;
-  document.getElementById("mcDesc").textContent = props.descripcion;
+
+  // Hero Image logic
+  const heroGlow = document.querySelector("#calEventModal .ed-hero-glow");
+  if (props.estado === "Pasado" && props.imagenes_url && props.imagenes_url.length > 0) {
+    // Add background image and clear the animated gradient by overriding background
+    // using a pseudo-element style or direct inline background with a dark tint overlay
+    heroGlow.style.background = `linear-gradient(to top, rgba(15,23,42,1) 0%, rgba(15,23,42,0.4) 100%), url('${props.imagenes_url[0]}') center/cover no-repeat`;
+    heroGlow.style.animation = 'none'; // pause animation just in case
+  } else {
+    // Reset to original gradient
+    heroGlow.style.background = '';
+    heroGlow.style.animation = '';
+  }
+
+  // New Neon Float IDs
+  document.getElementById("mcDateDisplay").textContent = props.fechaStr || "--";
+  document.getElementById("mcTimeDisplay").textContent = props.hora || "--";
+
+  // Badges (Modality & Status fallback)
+  document.getElementById("mcMod").textContent = props.modalidad || "--";
+  if (document.getElementById("mcClasif")) {
+    document.getElementById("mcClasif").textContent = props.estado || "Activo";
+  }
+
+  document.getElementById("mcDesc").textContent = props.descripcion || "Sin descripción";
   document.getElementById("mcLugar").textContent = props.lugar || "Por definir";
-  document.getElementById("mcMod").textContent = props.modalidad;
 
   const btnPart = document.getElementById("mcBtnPart");
   btnPart.href = "#";
