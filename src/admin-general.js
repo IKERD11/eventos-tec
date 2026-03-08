@@ -627,8 +627,6 @@ function openCalEventModal(eventObj) {
     openParticipantesPanel(eventObj.id, eventObj.title, props.fechaStr);
   };
 
-  document.getElementById("mcBtnReg").href = `/registro.html?evento=${eventObj.id}`;
-
   document.getElementById("calEventModal").style.display = "flex";
 }
 
