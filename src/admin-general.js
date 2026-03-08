@@ -619,7 +619,14 @@ function openCalEventModal(eventObj) {
   document.getElementById("mcLugar").textContent = props.lugar || "Por definir";
   document.getElementById("mcMod").textContent = props.modalidad;
 
-  document.getElementById("mcBtnPart").href = `/participantes.html?evento=${eventObj.id}`;
+  const btnPart = document.getElementById("mcBtnPart");
+  btnPart.href = "#";
+  btnPart.onclick = (e) => {
+    e.preventDefault();
+    document.getElementById("calEventModal").style.display = "none";
+    openParticipantesPanel(eventObj.id, eventObj.title, props.fechaStr);
+  };
+
   document.getElementById("mcBtnReg").href = `/registro.html?evento=${eventObj.id}`;
 
   document.getElementById("calEventModal").style.display = "flex";
