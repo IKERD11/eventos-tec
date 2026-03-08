@@ -1,4 +1,4 @@
-import { login, register, checkSession, resetPassword, updatePassword, onRecovery } from './auth';
+import { login, register, checkSession, resetPassword, updatePassword, onRecovery } from './auth.js';
 import { supabase } from './supabase.js';
 
 // Redirige según el rol del usuario
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Manejar errores de Supabase
       console.error('Error completo:', error);
       let errorMsg = error.message || 'Error desconocido';
-      
+
       if (errorMsg === "Invalid login credentials") {
         errorMsg = "Credenciales incorrectas. Verifica tu email y contraseña.";
       } else if (errorMsg === "Email not confirmed") {
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (error.status === 500) {
         errorMsg = "Error del servidor (500). Posibles causas: usuario no existe, trigger de BD falla, o RLS bloqueando acceso. Revisa la consola del navegador (F12).";
       }
-      
+
       showError(errorMsg);
       resetBtn();
     }

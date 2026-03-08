@@ -166,17 +166,26 @@
         }
 
         .cal-modal-content {
-            background: var(--bg-color);
+            background: linear-gradient(145deg, rgba(28, 28, 42, 0.95), rgba(15, 15, 25, 0.98));
             width: 100%;
-            max-width: 450px;
-            border-radius: 16px;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 480px;
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid rgba(140, 82, 255, 0.25);
             position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: calModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes calModalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .light-theme .cal-modal-content {
-            border-color: rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(140, 82, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
@@ -277,14 +286,29 @@
             <h2 id="mcTitle" style="margin-bottom:10px;">Título</h2>
             <p id="mcDate" style="font-weight:600; color:var(--accent-color); margin-bottom:15px;"></p>
             <p id="mcDesc" style="margin-bottom:15px; opacity:0.8;"></p>
-            <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
-            <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                <p><strong>Lugar:</strong> <span id="mcLugar"></span></p>
+                <p><strong>Modalidad:</strong> <span id="mcMod"></span></p>
+                <p><strong>Carrera/Clasificación:</strong> <span id="mcClasif" style="color:var(--primary-color);"></span></p>
+            </div>
             <hr style="border:0; border-top:1px solid rgba(128,128,128,0.2); margin: 20px 0;" />
-            <div style="display:flex; justify-content:space-between; gap:10px;">
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:12px;">
                 <a id="mcBtnPart" href="#" class="btn-secondary"
-                    style="text-decoration:none; text-align:center; flex:1;">Ver Participantes</a>
-                <a id="mcBtnReg" href="#" target="_blank" class="btn-primary"
-                    style="text-decoration:none; text-align:center; flex:1;">Registro Público</a>
+                    style="text-decoration:none; text-align:center; flex:1;">👥 Ver Participantes</a>
+                <button id="mcBtnReg" class="btn-primary" style="flex:1; cursor:pointer;">🔗 Registro Público</button>
+            </div>
+            <!-- URL pública (se muestra al hacer clic en Registro Público) -->
+            <div id="mcUrlPanel" style="display:none; background:rgba(140,82,255,0.1); border:1px solid rgba(140,82,255,0.3); border-radius:12px; padding:12px; margin-top:4px;">
+                <p style="font-size:0.8rem; opacity:0.7; margin-bottom:8px;">Comparte este enlace con los participantes:</p>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input id="mcPublicUrl" type="text" readonly
+                        style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:8px 12px; color:var(--text-color); font-size:0.85rem; font-family:inherit; outline:none;" />
+                    <button id="mcBtnCopyUrl" title="Copiar enlace"
+                        style="background:var(--primary-color); border:none; border-radius:8px; padding:8px 12px; color:#fff; cursor:pointer; font-size:0.85rem; font-weight:600; transition:all 0.2s; white-space:nowrap;">
+                        Copiar
+                    </button>
+                </div>
+                <p id="mcCopyMsg" style="display:none; color:var(--success-color); font-size:0.8rem; margin-top:6px; text-align:center;">✓ ¡Enlace copiado!</p>
             </div>
         </div>
     </div>

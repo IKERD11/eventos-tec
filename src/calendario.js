@@ -65,7 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         modalidad: ev.modalidad,
                         estado: ev.estado,
                         hora: ev.hora,
-                        fechaStr: ev.fecha
+                        fechaStr: ev.fecha,
+                        clasificacion: ev.clasificacion
                     }
                 };
             });
@@ -105,9 +106,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Modal helpers
     const modal = document.getElementById('calEventModal');
-    document.getElementById('closeCalModal').addEventListener('click', () => modal.style.display = 'none');
+    document.getElementById('closeCalModal').addEventListener('click', () => {
+        modal.style.display = 'none';
+        document.getElementById('mcUrlPanel').style.display = 'none';
+    });
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            document.getElementById('mcUrlPanel').style.display = 'none';
+        }
+    });
+
+    // Botón "Registro Público" - muestra/oculta panel URL
+    document.getElementById('mcBtnReg').addEventListener('click', () => {
+        const panel = document.getElementById('mcUrlPanel');
+        const isVisible = panel.style.display !== 'none';
+        panel.style.display = isVisible ? 'none' : 'block';
+        document.getElementById('mcCopyMsg').style.display = 'none';
+    });
+
+    // Botón "Copiar" URL
+    document.getElementById('mcBtnCopyUrl').addEventListener('click', () => {
+        const urlInput = document.getElementById('mcPublicUrl');
+        const copyMsg = document.getElementById('mcCopyMsg');
+        const btn = document.getElementById('mcBtnCopyUrl');
+        navigator.clipboard.writeText(urlInput.value).then(() => {
+            copyMsg.style.display = 'block';
+            btn.textContent = '✓ Copiado';
+            btn.style.background = 'var(--success-color, #51cf66)';
+            setTimeout(() => {
+                copyMsg.style.display = 'none';
+                btn.textContent = 'Copiar';
+                btn.style.background = '';
+            }, 2500);
+        }).catch(() => {
+            urlInput.select();
+            document.execCommand('copy');
+            copyMsg.style.display = 'block';
+        });
     });
 
     function showEventModal(eventObj) {
@@ -118,8 +154,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('mcLugar').textContent = props.lugar || 'Por definir';
         document.getElementById('mcMod').textContent = props.modalidad;
 
+        // Clasificación/Carrera
+        const clasifMap = {
+            'Institucional': 'Institucional',
+            'ISC': 'Ing. Sistemas Computacionales',
+            'IGE': 'Ing. Gestión Empresarial',
+            'Ingeniería Industrial': 'Ing. Industrial',
+            'Ingeniería Mecatrónica': 'Ing. Mecatrónica',
+            'Ingeniería Electrónica': 'Ing. Electrónica',
+            'Ingeniería Civil': 'Ing. Civil',
+            'Contador Público': 'Contador Público'
+        };
+        const clasifVal = props.clasificacion || 'Institucional';
+        document.getElementById('mcClasif').textContent = clasifMap[clasifVal] || clasifVal;
+
+        // Botón Ver Participantes
         document.getElementById('mcBtnPart').href = `/participantes.html?evento=${eventObj.id}`;
-        document.getElementById('mcBtnReg').href = `/registro.html?evento=${eventObj.id}`;
+
+        // URL pública del registro
+        const publicUrl = window.location.origin + '/registro.html?evento=' + eventObj.id;
+        document.getElementById('mcPublicUrl').value = publicUrl;
+
+        // Resetear panel URL
+        document.getElementById('mcUrlPanel').style.display = 'none';
+        document.getElementById('mcCopyMsg').style.display = 'none';
+        const copyBtn = document.getElementById('mcBtnCopyUrl');
+        copyBtn.textContent = 'Copiar';
+        copyBtn.style.background = '';
 
         modal.style.display = 'flex';
     }
