@@ -18,27 +18,9 @@
 
 /* --- Custom Scrollbar --- */
 ::-webkit-scrollbar {
-    width: 6px;
-    /* modern slim scrollbar */
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    /* barely visible track */
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(0, 230, 118, 0.4);
-    /* glass green thumb */
-    border-radius: 10px;
-    backdrop-filter: blur(4px);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 230, 118, 0.8);
-    /* solid on hover */
+    display: none;
+    width: 0px;
+    height: 0px;
 }
 
 body {
@@ -759,13 +741,4 @@ body.light-theme .select-items div:hover {
 .form-select-items {
     max-height: 250px;
     overflow-y: auto;
-}
-
-.form-select-items::-webkit-scrollbar {
-    width: 6px;
-}
-
-.form-select-items::-webkit-scrollbar-thumb {
-    background: rgba(0, 230, 118, 0.4);
-    border-radius: 10px;
 }

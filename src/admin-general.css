@@ -1504,17 +1504,7 @@ body.light-theme .user-name-small {
   border-radius: 14px;
 }
 
-/* Scrollbar sutil dentro del panel */
-.participantes-panel::-webkit-scrollbar,
-.pnl-table-wrap::-webkit-scrollbar {
-  width: 4px;
-}
 
-.participantes-panel::-webkit-scrollbar-thumb,
-.pnl-table-wrap::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-}
 
 /* =========================================
    CUSTOM SELECT DROPDOWNS
@@ -1699,24 +1689,7 @@ body.light-theme .user-name-small {
   padding: 10px;
 }
 
-/* Custom Scrollbar for Grid */
-.gallery-grid::-webkit-scrollbar {
-  width: 8px;
-}
 
-.gallery-grid::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.gallery-grid::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-}
-
-.gallery-grid::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
 
 .gallery-item {
   position: relative;
